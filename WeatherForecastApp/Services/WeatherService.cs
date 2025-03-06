@@ -43,9 +43,9 @@ namespace WeatherForecastApp.Services
 
                     var forecast = new WeatherForecast
                     {
-                        Location = weatherForecast["name"].Value<string>(),
-                        Date = DateOnly.FromDateTime(DateTime.UtcNow),
-                        TemperatureC = (float)Math.Round(weatherForecast["main"]["temp"].Value<double>(), 1),
+                        Location = $"{weatherForecast["sys"]["country"]}, {location}, Lon: {weatherForecast["coord"]["lon"]}, Lat: {weatherForecast["coord"]["lat"]}",
+                        Date = DateTime.UtcNow,
+                        TemperatureC = (float)Math.Round(weatherForecast["main"]["temp"].Value<double>() - 273.15, 1), // Convert from Kelvin to Celsius
                         Conditions = weatherForecast["weather"][0]["description"].Value<string>()
                     };
                     return new List<WeatherForecast> { forecast };

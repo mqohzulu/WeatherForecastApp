@@ -16,6 +16,9 @@ namespace WeatherForecastApp
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<WeatherForecast>()
+           .ToTable("WeatherForecasts");
+
+            modelBuilder.Entity<WeatherForecast>()
                 .HasKey(w => w.Id);
         }
 
