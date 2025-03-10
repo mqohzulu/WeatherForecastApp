@@ -6,6 +6,7 @@ namespace WeatherForecastApp.Services.Interfaces
     {
         Task<IEnumerable<WeatherForecast>> GetWeather(string location);
         Task SaveWeather(WeatherForecast weather);
+        Task<WeatherForecast> GetWeatherFromDbByID(int Id);
     }
 
 }

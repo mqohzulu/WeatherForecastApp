@@ -11,6 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = "DataSource=:memory:";
 var keepAliveConnection = new SqliteConnection(connectionString);
+var apiKey = builder.Configuration["WeatherApi:ApiKey"];
+var baseUrl = builder.Configuration["WeatherApi:BaseUrl"];
+
 keepAliveConnection.Open();
 
 builder.Services.AddDbContext<WeatherDbContext>(options =>
@@ -18,12 +21,16 @@ builder.Services.AddDbContext<WeatherDbContext>(options =>
     options.UseSqlite(keepAliveConnection);
 });
 
-
 // Add services to the container.
-builder.Services.AddHttpClient<IWeatherService, WeatherService>();
+builder.Services.AddHttpClient("WeatherService", client =>
+{
+    client.BaseAddress = new Uri(baseUrl);
+});
+
 builder.Services.AddTransient<IWeatherService, WeatherService>();
 builder.Services.AddTransient<IWeatherRepository, WeatherRepository>();
 
+builder.Services.AddSingleton(new WeatherApiOptions { ApiKey = apiKey });
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
 builder.Services.AddControllers();

@@ -11,26 +11,23 @@ namespace WeatherForecastApp.Services
     public class WeatherService : IWeatherService
     {
         private readonly IWeatherRepository _weatherRepository;
-        private readonly HttpClient _client;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _apiKey;
-        private readonly string _baseUrl;
 
-        public WeatherService(IConfiguration config, HttpClient client, IWeatherRepository weatherRepository)
+        public WeatherService(IHttpClientFactory httpClientFactory, IWeatherRepository weatherRepository, WeatherApiOptions options)
         {
             _weatherRepository = weatherRepository;
-            _client = client;
-            //  _client.DefaultRequestHeaders.Accept.Add( new MediatTypeWithQualityHeaderValue("application/json"));
-            _apiKey = config["WeatherApi:ApiKey"];
-            _baseUrl = config["WeatherApi:BaseUrl"];
+            _httpClientFactory = httpClientFactory;
+            _apiKey = options.ApiKey;
         }
-
         public async Task<IEnumerable<WeatherForecast>> GetWeather(string location)
         {
             try
             {
-                string Url = $"{_baseUrl}?q={location}&appid={_apiKey}";
+                using var client = _httpClientFactory.CreateClient("WeatherService");
+                string url = $"?q={location}&appid={_apiKey}";
 
-                var response = await _client.GetAsync(Url);
+                var response = await client.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -62,5 +59,9 @@ namespace WeatherForecastApp.Services
             
             await _weatherRepository.SaveWeather(weather);
         }
+        public async Task<WeatherForecast> GetWeatherFromDbByID(int Id)
+        {
+            return await _weatherRepository.GetWeatherFromDbByID(Id);
+        }   
     }
 }

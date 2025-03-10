@@ -17,7 +17,8 @@ namespace WeatherForecastApp.Controllers
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
+        [HttpGet]
+        [Route("GetWeatherForecast")]
         public async Task<IActionResult> GetWeather(string location)
         {
             try
@@ -32,7 +33,8 @@ namespace WeatherForecastApp.Controllers
         
         }
 
-        [HttpPost(Name = "SaveWeather")]
+        [HttpPost]
+        [Route("SaveWeather")]
         public async Task<IActionResult> SaveWeather(WeatherForecast weather)
         {
             try
@@ -45,5 +47,19 @@ namespace WeatherForecastApp.Controllers
                 return BadRequest();
             }
         }
+        [HttpGet]
+        [Route("GetWeatherFromDbByID")]
+        public async Task<IActionResult> GetWeatherById(int Id)
+        {
+            try
+            {
+                var weather = await _weatherService.GetWeatherFromDbByID(Id);
+                return Ok(weather);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }   
     }
 }

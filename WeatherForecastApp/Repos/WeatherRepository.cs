@@ -16,5 +16,9 @@ namespace WeatherForecastApp.Repos
             await _context.WeatherForecasts.AddAsync(weather);
             await _context.SaveChangesAsync();
         }
+        public async Task<WeatherForecast> GetWeatherFromDbByID(int Id)
+        {
+            return await _context.WeatherForecasts.FirstOrDefaultAsync(x => x.Id == Id);
+        }
     }
 }
