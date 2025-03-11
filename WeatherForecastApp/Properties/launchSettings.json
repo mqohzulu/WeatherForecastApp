@@ -19,7 +19,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "https": {
+    "weather-service-api": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

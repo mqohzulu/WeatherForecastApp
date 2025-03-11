@@ -29,7 +29,7 @@ builder.Services.AddHttpClient("WeatherService", client =>
 
 builder.Services.AddTransient<IWeatherService, WeatherService>();
 builder.Services.AddTransient<IWeatherRepository, WeatherRepository>();
-
+//PM - USE I OPTIONS TO GET API KEY AND BASE URL
 builder.Services.AddSingleton(new WeatherApiOptions { ApiKey = apiKey });
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 

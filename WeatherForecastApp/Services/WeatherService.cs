@@ -1,6 +1,7 @@
 ﻿
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Net;
 using WeatherForecastApp.Models;
 using WeatherForecastApp.Repos.Interfaces;
 using WeatherForecastApp.Services.Interfaces;
@@ -24,17 +25,21 @@ namespace WeatherForecastApp.Services
         {
             try
             {
-                using var client = _httpClientFactory.CreateClient("WeatherService");
-                string url = $"?q={location}&appid={_apiKey}";
-
-                var response = await client.GetAsync(url);
-
-                if (!response.IsSuccessStatusCode)
+                using (var client = _httpClientFactory.CreateClient("WeatherService"))
                 {
-                    return Enumerable.Empty<WeatherForecast>();
-                }
-                else
-                {
+                    string url = $"?q={location}&appid={_apiKey}";
+                    var response = await client.GetAsync(url);
+
+                    if (response.StatusCode == HttpStatusCode.NotFound) 
+                    {
+                        throw new KeyNotFoundException($"City '{location}' not found.");
+                    }
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return Enumerable.Empty<WeatherForecast>();
+                    }
+
                     var weather = await response.Content.ReadAsStringAsync();
                     var weatherForecast = JObject.Parse(weather);
 
@@ -45,23 +50,30 @@ namespace WeatherForecastApp.Services
                         TemperatureC = (float)Math.Round(weatherForecast["main"]["temp"].Value<double>() - 273.15, 1), // Convert from Kelvin to Celsius
                         Conditions = weatherForecast["weather"][0]["description"].Value<string>()
                     };
+
                     return new List<WeatherForecast> { forecast };
                 }
+            }
+            catch (KeyNotFoundException ex) 
+            {
+                throw new Exception(ex.Message);
             }
             catch (Exception ex)
             {
                 throw new Exception("Error getting weather data", ex);
             }
-           
         }
+
+
+        //USE LOGGING SO THAT YOU CAN LOG ERRORS
         public async Task SaveWeather(WeatherForecast weather)
         {
-            
             await _weatherRepository.SaveWeather(weather);
         }
         public async Task<WeatherForecast> GetWeatherFromDbByID(int Id)
         {
-            return await _weatherRepository.GetWeatherFromDbByID(Id);
+            var ret = await _weatherRepository.GetWeatherFromDbByID(Id);
+            return ret;
         }   
     }
 }
