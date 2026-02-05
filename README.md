@@ -1,83 +1,69 @@
-🌦️ Weather Forecast API
-Welcome to the Weather Forecast API! This application provides real-time weather data using OpenWeatherMap and allows users to store and retrieve weather forecasts from a local SQLite database.
+# Weather Forecast API
 
-📌 Features
-✅ Fetch real-time weather from OpenWeatherMap
-✅ Store weather data in an in-memory SQLite database
-✅ RESTful API with Swagger support
-✅ Uses HttpClientFactory for external API calls
-✅ Dependency Injection for better maintainability
+Weather Forecast API is an ASP.NET Core Web API that fetches weather data from OpenWeatherMap and stores forecast records in an in-memory SQLite database.
 
-🛠️ Tech Stack
-Technology	Description
-🌐 ASP.NET Core	Web API framework
-🔍 Entity Framework Core	Database ORM
-🗄️ SQLite (In-Memory)	Lightweight database for testing
-☁️ HttpClientFactory	For making external API calls
-📄 Swagger (Swashbuckle)	API documentation
-📦 Installation & Setup
-1️⃣ Clone the Repository
+## Features
 
-sh
-Copy
-Edit
+- Fetch real-time weather from OpenWeatherMap
+- Store weather data in an in-memory SQLite database
+- REST API with Swagger documentation
+- Uses `HttpClientFactory` for external API calls
+- Uses dependency injection throughout the application
+
+## Tech Stack
+
+- ASP.NET Core
+- Entity Framework Core
+- SQLite (in-memory)
+- HttpClientFactory
+- Swagger (Swashbuckle)
+
+## Installation and Setup
+
+1. Clone the repository:
+
+```bash
 git clone https://github.com/your-username/weather-forecast-api.git
 cd weather-forecast-api
-2️⃣ Configure API Keys
-Add the following to your appsettings.json:
+```
 
-json
-Copy
-Edit
+2. Configure API keys in `appsettings.json`:
+
+```json
 {
   "WeatherApi": {
     "ApiKey": "your_openweathermap_api_key",
     "BaseUrl": "https://api.openweathermap.org/data/2.5/weather"
   }
 }
-3️⃣ Run the Application
-sh
-Copy
-Edit
+```
+
+3. Run the application:
+
+```bash
 dotnet run
+```
 
-🔌 API Endpoints
-HTTP Method	Endpoint	Description
-GET	/WeatherForecast?location={city}	Fetches weather data for a given location
-POST	/WeatherForecast	Saves weather forecast to the database
-GET	/swagger	Opens Swagger UI for API testing
-🛠️ Environment Variables
-Variable	Description
-WeatherApi:ApiKey	OpenWeatherMap API Key
-WeatherApi:BaseUrl	Base URL for weather API
-📂 Project Structure
-bash
-Copy
-Edit
-📂 WeatherForecastApp
- ┣ 📂 Controllers            # API Controllers
- ┣ 📂 Models                 # Data models
- ┣ 📂 Repos                  # Repository layer
- ┣ 📂 Services               # Business logic services
- ┣ 📂 Data                   # EF Core DB context
- ┣ 📝 WeatherApiOptions.cs   # Api key
- ┣ 📝 Program.cs             # Application entry point
-🛠️ Development & Contribution
-Fork the repository
-Create a new branch (feature/my-feature)
-Commit your changes
-Push to your branch
-Open a Pull Request
+## API Endpoints
 
-🤝 Contact
-📧 Email: mqohzulu@gmail.com
-🌍 GitHub: https://github.com/mqohzulu/
+- `GET /WeatherForecast?location={city}`: Fetch weather data for a location
+- `POST /WeatherForecast`: Save weather forecast to the database
+- `GET /swagger`: Open Swagger UI
 
-🚀 Happy coding! 😊
+## Environment Variables
 
+- `WeatherApi:ApiKey`: OpenWeatherMap API key
+- `WeatherApi:BaseUrl`: Base URL for the weather API
 
+## Development and Contribution
 
+1. Fork the repository
+2. Create a new branch (`feature/my-feature`)
+3. Commit your changes
+4. Push to your branch
+5. Open a pull request
 
+## Contact
 
-
-
+- Email: mqohzulu@gmail.com
+- GitHub: https://github.com/mqohzulu/
