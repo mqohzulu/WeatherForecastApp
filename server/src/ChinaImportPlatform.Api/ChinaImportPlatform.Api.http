@@ -1,0 +1,62 @@
+@host = http://localhost:5000
+
+### Health check
+GET {{host}}/health
+
+### Request an OTP (returns devOtp in the scaffold)
+POST {{host}}/api/v1/auth/request-otp
+Content-Type: application/json
+
+{
+  "phoneNumber": "+27820000099",
+  "fullName": "New Tester"
+}
+
+### Verify OTP (use the devOtp from the previous response)
+POST {{host}}/api/v1/auth/verify-otp
+Content-Type: application/json
+
+{
+  "phoneNumber": "+27820000099",
+  "otp": "000000"
+}
+
+### List active categories
+GET {{host}}/api/v1/categories
+
+### List products in the Machinery category
+GET {{host}}/api/v1/products?categoryId=10000000-0000-0000-0000-000000000001
+
+### Search products
+GET {{host}}/api/v1/products?search=grinder
+
+### Place an order
+POST {{host}}/api/v1/orders
+Content-Type: application/json
+
+{
+  "userId": "00000000-0000-0000-0000-000000000002",
+  "tripId": "40000000-0000-0000-0000-000000000001",
+  "items": [
+    { "productId": "20000000-0000-0000-0000-000000000001", "variantId": "30000000-0000-0000-0000-000000000001", "quantity": 3, "note": "Standard model" }
+  ]
+}
+
+### Seller order queue
+GET {{host}}/api/v1/orders
+
+### Consolidated demand for the July trip
+GET {{host}}/api/v1/consolidated-demand?tripId=40000000-0000-0000-0000-000000000001
+
+### Update an order status
+PUT {{host}}/api/v1/orders/50000000-0000-0000-0000-000000000003/status
+Content-Type: application/json
+
+{
+  "status": "Shipped",
+  "note": "On the container, ETA Durban 20 July.",
+  "updatedBy": "00000000-0000-0000-0000-000000000001"
+}
+
+### Announcements feed
+GET {{host}}/api/v1/announcements

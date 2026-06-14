@@ -1,0 +1,92 @@
+[
+  {
+    "id": "20000000-0000-0000-0000-000000000001",
+    "categoryId": "10000000-0000-0000-0000-000000000001",
+    "name": "Angle Grinder 230 mm",
+    "description": "Heavy-duty 230 mm angle grinder, 2200 W, ideal for cutting and grinding steel.",
+    "indicativePriceCents": 129900,
+    "leadTime": "Next trip – approximately 6 weeks",
+    "isActive": true,
+    "createdAt": "2026-01-12T08:00:00Z",
+    "variants": [
+      {
+        "id": "30000000-0000-0000-0000-000000000001",
+        "attributes": { "model": "Standard" },
+        "priceAdjustmentCents": 0,
+        "isActive": true
+      },
+      {
+        "id": "30000000-0000-0000-0000-000000000002",
+        "attributes": { "model": "Pro (anti-vibration)" },
+        "priceAdjustmentCents": 25000,
+        "isActive": true
+      }
+    ],
+    "images": [
+      { "id": "31000000-0000-0000-0000-000000000001", "s3Key": "products/grinder-1.jpg", "url": "https://cdn.example.co.za/products/grinder-1.jpg", "sortOrder": 0 }
+    ]
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000002",
+    "categoryId": "10000000-0000-0000-0000-000000000001",
+    "name": "Cordless Drill 20V",
+    "description": "20V brushless cordless drill with two batteries and a carry case.",
+    "indicativePriceCents": 99900,
+    "leadTime": "Next trip – approximately 6 weeks",
+    "isActive": true,
+    "createdAt": "2026-01-12T08:05:00Z",
+    "variants": [],
+    "images": [
+      { "id": "31000000-0000-0000-0000-000000000002", "s3Key": "products/drill-1.jpg", "url": "https://cdn.example.co.za/products/drill-1.jpg", "sortOrder": 0 }
+    ]
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000003",
+    "categoryId": "10000000-0000-0000-0000-000000000002",
+    "name": "Fleece Hoodie",
+    "description": "Warm fleece-lined pullover hoodie with front pocket.",
+    "indicativePriceCents": 34900,
+    "leadTime": "Next trip – approximately 6 weeks",
+    "isActive": true,
+    "createdAt": "2026-01-13T08:00:00Z",
+    "variants": [
+      { "id": "30000000-0000-0000-0000-00000000000a", "attributes": { "size": "S", "colour": "Black" }, "priceAdjustmentCents": 0, "isActive": true },
+      { "id": "30000000-0000-0000-0000-00000000000b", "attributes": { "size": "M", "colour": "Blue" }, "priceAdjustmentCents": 0, "isActive": true },
+      { "id": "30000000-0000-0000-0000-00000000000c", "attributes": { "size": "L", "colour": "Black" }, "priceAdjustmentCents": 2000, "isActive": true }
+    ],
+    "images": [
+      { "id": "31000000-0000-0000-0000-000000000003", "s3Key": "products/hoodie-1.jpg", "url": "https://cdn.example.co.za/products/hoodie-1.jpg", "sortOrder": 0 }
+    ]
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000004",
+    "categoryId": "10000000-0000-0000-0000-000000000003",
+    "name": "Wireless Earbuds",
+    "description": "Bluetooth 5.3 earbuds with charging case and noise isolation.",
+    "indicativePriceCents": 49900,
+    "leadTime": "Next trip – approximately 6 weeks",
+    "isActive": true,
+    "createdAt": "2026-01-14T08:00:00Z",
+    "variants": [
+      { "id": "30000000-0000-0000-0000-00000000000d", "attributes": { "colour": "Black" }, "priceAdjustmentCents": 0, "isActive": true },
+      { "id": "30000000-0000-0000-0000-00000000000e", "attributes": { "colour": "White" }, "priceAdjustmentCents": 0, "isActive": true }
+    ],
+    "images": [
+      { "id": "31000000-0000-0000-0000-000000000004", "s3Key": "products/earbuds-1.jpg", "url": "https://cdn.example.co.za/products/earbuds-1.jpg", "sortOrder": 0 }
+    ]
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000005",
+    "categoryId": "10000000-0000-0000-0000-000000000004",
+    "name": "LED Desk Lamp",
+    "description": "Dimmable LED desk lamp with USB charging port.",
+    "indicativePriceCents": 27900,
+    "leadTime": "Next trip – approximately 6 weeks",
+    "isActive": true,
+    "createdAt": "2026-01-15T08:00:00Z",
+    "variants": [],
+    "images": [
+      { "id": "31000000-0000-0000-0000-000000000005", "s3Key": "products/lamp-1.jpg", "url": "https://cdn.example.co.za/products/lamp-1.jpg", "sortOrder": 0 }
+    ]
+  }
+]

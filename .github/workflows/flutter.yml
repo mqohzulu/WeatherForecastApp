@@ -1,0 +1,41 @@
+name: Flutter CI
+
+# Quality gates for the Flutter app. Release/signing and store distribution
+# (Google Play internal track, TestFlight) are described in the implementation plan
+# and added once signing secrets are configured.
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ["client/**", ".github/workflows/flutter.yml"]
+  pull_request:
+    paths: ["client/**", ".github/workflows/flutter.yml"]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client/china_import_app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code (freezed / json_serializable / riverpod)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Format check
+        run: dart format --set-exit-if-changed .
+
+      - name: Test
+        run: flutter test

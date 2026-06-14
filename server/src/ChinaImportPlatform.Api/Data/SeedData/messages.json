@@ -1,0 +1,26 @@
+[
+  {
+    "id": "90000000-0000-0000-0000-000000000001",
+    "conversationId": "80000000-0000-0000-0000-000000000001",
+    "senderId": "00000000-0000-0000-0000-000000000002",
+    "orderId": "50000000-0000-0000-0000-000000000001",
+    "body": "Hi, is the Pro grinder model available for my order?",
+    "attachmentS3Key": null,
+    "sentAt": "2026-06-12T08:55:00Z",
+    "deliveredAt": "2026-06-12T08:55:05Z",
+    "readAt": "2026-06-12T08:57:00Z",
+    "createdAt": "2026-06-12T08:55:00Z"
+  },
+  {
+    "id": "90000000-0000-0000-0000-000000000002",
+    "conversationId": "80000000-0000-0000-0000-000000000001",
+    "senderId": "00000000-0000-0000-0000-000000000001",
+    "orderId": "50000000-0000-0000-0000-000000000001",
+    "body": "Yes, the Pro model is available for an extra R250. Want me to switch it?",
+    "attachmentS3Key": null,
+    "sentAt": "2026-06-12T09:00:00Z",
+    "deliveredAt": "2026-06-12T09:00:03Z",
+    "readAt": null,
+    "createdAt": "2026-06-12T09:00:00Z"
+  }
+]

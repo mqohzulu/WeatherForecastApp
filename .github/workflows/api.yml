@@ -1,0 +1,35 @@
+name: API CI
+
+# Build + test the .NET API on every push/PR that touches the server.
+# Packaging and deployment stages (Docker -> ECR -> App Runner, plus EF migrations)
+# are described in docs/IMPLEMENTATION_PLAN.md and wired once AWS OIDC secrets exist.
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ["server/**", ".github/workflows/api.yml"]
+  pull_request:
+    paths: ["server/**", ".github/workflows/api.yml"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal
