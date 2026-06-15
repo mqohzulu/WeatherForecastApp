@@ -1,5 +1,20 @@
 namespace ChinaImportPlatform.Api.Dtos;
 
+/// <summary>Catalogue query parameters: category + keyword + price range + sort + paging (US-C05/C07).</summary>
+public record ProductQuery
+{
+    public Guid? CategoryId { get; init; }
+    public string? Search { get; init; }
+    public long? MinPriceCents { get; init; }
+    public long? MaxPriceCents { get; init; }
+
+    /// <summary>One of: name, price_asc, price_desc, newest. Defaults to name.</summary>
+    public string? Sort { get; init; }
+
+    public int Page { get; init; } = 1;
+    public int PageSize { get; init; } = 20;
+}
+
 public record CategoryDto
 {
     public Guid Id { get; init; }

@@ -5,7 +5,7 @@ namespace ChinaImportPlatform.Api.IServices;
 
 public interface IProductService
 {
-    Task<PagedResult<ProductDto>> GetAsync(Guid? categoryId, string? search, int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResult<ProductDto>> GetAsync(ProductQuery query, CancellationToken ct = default);
 
     Task<ProductDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
 

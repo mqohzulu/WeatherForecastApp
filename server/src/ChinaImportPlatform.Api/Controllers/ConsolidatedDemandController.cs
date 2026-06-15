@@ -34,4 +34,15 @@ public class ConsolidatedDemandController : ControllerBase
         var result = await _demand.GetAsync(tripId, minStatus, categoryId, ct);
         return Ok(ApiResponse<IReadOnlyList<ConsolidatedDemandLineDto>>.Ok(result));
     }
+
+    /// <summary>
+    /// Tick an item off the buying list: moves every linked order to Being Sourced in one
+    /// action and notifies each affected customer (US-S02).
+    /// </summary>
+    [HttpPost("mark-sourced")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<OrderDto>>>> MarkSourced([FromBody] MarkDemandSourcedDto dto, CancellationToken ct)
+    {
+        var affected = await _demand.MarkSourcedAsync(dto, ct);
+        return Ok(ApiResponse<IReadOnlyList<OrderDto>>.Ok(affected, $"{affected.Count} orders moved to Being Sourced."));
+    }
 }

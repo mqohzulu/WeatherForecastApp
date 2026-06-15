@@ -26,7 +26,12 @@ public class OrderServiceTests
 
         var orders = new FakeOrderRepository();
         var products = new FakeProductRepository(new[] { product });
-        var service = new OrderService(orders, products, new NullNotificationService());
+        var users = new FakeUserRepository(new[]
+        {
+            new User { Id = CustomerId, FullName = "Thabo Mokoena", PhoneNumber = "+27820000002" }
+        });
+        var paymentRequests = new FakePaymentRequestRepository();
+        var service = new OrderService(orders, products, users, paymentRequests, new NullNotificationService());
         return (service, orders);
     }
 
@@ -109,5 +114,51 @@ public class OrderServiceTests
         Assert.Equal(OrderStatus.Confirmed, updated.Status);
         Assert.Contains(updated.StatusHistory, h => h.Status == OrderStatus.Confirmed);
         Assert.True(updated.StatusHistory.Count >= 2);
+    }
+
+    [Fact]
+    public async Task RejectLine_SetsLineRejectedWithReason()
+    {
+        var (service, _) = BuildService();
+        var order = await service.PlaceOrderAsync(new CreateOrderDto
+        {
+            UserId = CustomerId,
+            Items = { new CreateOrderItemDto { ProductId = Guid.Parse("20000000-0000-0000-0000-000000000001"), Quantity = 1 } }
+        });
+        var lineId = order.Items[0].Id;
+
+        var updated = await service.RejectLineAsync(order.Id, new RejectLineDto
+        {
+            OrderItemId = lineId,
+            Reason = "Supplier out of stock",
+            UpdatedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")
+        });
+
+        var line = updated.Items.Single(i => i.Id == lineId);
+        Assert.Equal(LineStatus.Rejected, line.LineStatus);
+        Assert.Equal("Supplier out of stock", line.RejectionReason);
+    }
+
+    [Fact]
+    public async Task MarkReadyForCollection_SetsCollectionDetailsAndStatus()
+    {
+        var (service, _) = BuildService();
+        var order = await service.PlaceOrderAsync(new CreateOrderDto
+        {
+            UserId = CustomerId,
+            Items = { new CreateOrderItemDto { ProductId = Guid.Parse("20000000-0000-0000-0000-000000000001"), Quantity = 1 } }
+        });
+
+        var updated = await service.MarkReadyForCollectionAsync(order.Id, new MarkReadyForCollectionDto
+        {
+            CollectionAddress = "Warehouse, Kloof",
+            WindowStart = new DateTime(2026, 7, 20, 9, 0, 0, DateTimeKind.Utc),
+            WindowEnd = new DateTime(2026, 7, 20, 17, 0, 0, DateTimeKind.Utc),
+            UpdatedBy = Guid.Parse("00000000-0000-0000-0000-000000000001")
+        });
+
+        Assert.Equal(OrderStatus.ReadyForCollection, updated.Status);
+        Assert.Equal("Warehouse, Kloof", updated.CollectionAddress);
+        Assert.NotNull(updated.CollectionWindowStart);
     }
 }

@@ -3,10 +3,12 @@ using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ChinaImportPlatform.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting("messaging")]
 [Route("api/v1/conversations")]
 [Produces("application/json")]
 public class ConversationsController : ControllerBase

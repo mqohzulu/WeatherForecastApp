@@ -11,24 +11,55 @@ public class OrderService : IOrderService
 {
     private readonly IOrderRepository _orders;
     private readonly IProductRepository _products;
+    private readonly IUserRepository _users;
+    private readonly IPaymentRequestRepository _paymentRequests;
     private readonly INotificationService _notifications;
 
-    public OrderService(IOrderRepository orders, IProductRepository products, INotificationService notifications)
+    public OrderService(
+        IOrderRepository orders,
+        IProductRepository products,
+        IUserRepository users,
+        IPaymentRequestRepository paymentRequests,
+        INotificationService notifications)
     {
         _orders = orders;
         _products = products;
+        _users = users;
+        _paymentRequests = paymentRequests;
         _notifications = notifications;
     }
 
-    public async Task<PagedResult<OrderDto>> GetQueueAsync(int page, int pageSize, CancellationToken ct = default)
+    public async Task<PagedResult<OrderDto>> GetQueueAsync(int page, int pageSize, string? sort, OrderStatus? status, CancellationToken ct = default)
     {
-        var orders = (await _orders.GetAllAsync(ct))
-            .OrderByDescending(o => o.CreatedAt)
-            .Select(o => o.ToDto())
+        var orders = (IEnumerable<Order>)await _orders.GetAllAsync(ct);
+
+        if (status.HasValue)
+        {
+            orders = orders.Where(o => o.Status == status.Value);
+        }
+
+        var users = (await _users.GetAllAsync(ct)).ToDictionary(u => u.Id);
+
+        orders = sort switch
+        {
+            "value" => orders.OrderByDescending(o => o.TotalFinalCents ?? o.TotalIndicativeCents),
+            "status" => orders.OrderBy(o => o.Status),
+            "customer" => orders.OrderBy(o => users.TryGetValue(o.UserId, out var u) ? u.FullName : string.Empty),
+            _ => orders.OrderByDescending(o => o.CreatedAt)
+        };
+
+        var dtos = orders
+            .Select(o => o.ToDto() with
+            {
+                CustomerName = users.TryGetValue(o.UserId, out var u) ? u.FullName : null
+            })
             .ToList();
 
-        return PagedResult<OrderDto>.Create(orders, page, pageSize);
+        return PagedResult<OrderDto>.Create(dtos, page, pageSize);
     }
+
+    public async Task<int> CountNewAsync(CancellationToken ct = default) =>
+        (await _orders.FindAsync(o => o.Status == OrderStatus.Placed, ct)).Count;
 
     public async Task<IReadOnlyList<OrderDto>> GetByUserAsync(Guid userId, CancellationToken ct = default) =>
         (await _orders.GetByUserAsync(userId, ct)).Select(o => o.ToDto()).ToList();
@@ -135,13 +166,7 @@ public class OrderService : IOrderService
         ApplyStatus(order, dto.Status, dto.Note, dto.PhotoS3Key, dto.UpdatedBy);
         await _orders.UpdateAsync(order, ct);
 
-        await _notifications.NotifyUserAsync(
-            order.UserId,
-            "Order update",
-            $"Order {order.OrderNumber} is now {dto.Status}." + (dto.Note is null ? string.Empty : $" {dto.Note}"),
-            new Dictionary<string, string> { ["orderId"] = order.Id.ToString() },
-            ct);
-
+        await NotifyStatusAsync(order, dto.Note, ct);
         return order.ToDto();
     }
 
@@ -161,13 +186,7 @@ public class OrderService : IOrderService
             await _orders.UpdateAsync(order, ct);
 
             // Each affected customer receives an individual notification referencing their own order (US-S06).
-            await _notifications.NotifyUserAsync(
-                order.UserId,
-                "Order update",
-                $"Order {order.OrderNumber} is now {dto.Status}." + (dto.Note is null ? string.Empty : $" {dto.Note}"),
-                new Dictionary<string, string> { ["orderId"] = order.Id.ToString() },
-                ct);
-
+            await NotifyStatusAsync(order, dto.Note, ct);
             results.Add(order.ToDto());
         }
 
@@ -192,7 +211,7 @@ public class OrderService : IOrderService
         }
 
         order.TotalFinalCents = order.Items
-            .Where(i => i.UnitPriceFinalCents.HasValue)
+            .Where(i => i.UnitPriceFinalCents.HasValue && i.LineStatus != LineStatus.Rejected)
             .Sum(i => i.UnitPriceFinalCents!.Value * i.Quantity);
 
         await _orders.UpdateAsync(order, ct);
@@ -201,6 +220,71 @@ public class OrderService : IOrderService
             order.UserId,
             "Price ready",
             $"A final price is ready for order {order.OrderNumber}. Please accept or decline.",
+            new Dictionary<string, string> { ["orderId"] = order.Id.ToString() },
+            ct);
+
+        return order.ToDto();
+    }
+
+    public async Task<OrderDto> RejectLineAsync(Guid orderId, RejectLineDto dto, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Reason))
+        {
+            throw new AppException("A rejection reason is required.");
+        }
+
+        var order = await _orders.GetByIdAsync(orderId, ct)
+                    ?? throw new NotFoundException($"Order {orderId} not found.");
+
+        var item = order.Items.FirstOrDefault(i => i.Id == dto.OrderItemId)
+                   ?? throw new NotFoundException($"Order item {dto.OrderItemId} not found.");
+
+        item.LineStatus = LineStatus.Rejected;
+        item.RejectionReason = dto.Reason;
+
+        order.StatusHistory.Add(new OrderStatusHistoryEntry
+        {
+            Status = order.Status,
+            Note = $"Line rejected: {dto.Reason}",
+            CreatedBy = dto.UpdatedBy
+        });
+
+        await _orders.UpdateAsync(order, ct);
+
+        await _notifications.NotifyUserAsync(
+            order.UserId,
+            "Item unavailable",
+            $"An item on order {order.OrderNumber} could not be sourced: {dto.Reason}",
+            new Dictionary<string, string> { ["orderId"] = order.Id.ToString() },
+            ct);
+
+        return order.ToDto();
+    }
+
+    public async Task<OrderDto> MarkReadyForCollectionAsync(Guid orderId, MarkReadyForCollectionDto dto, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.CollectionAddress))
+        {
+            throw new AppException("A collection address is required.");
+        }
+
+        var order = await _orders.GetByIdAsync(orderId, ct)
+                    ?? throw new NotFoundException($"Order {orderId} not found.");
+
+        order.CollectionAddress = dto.CollectionAddress;
+        order.CollectionWindowStart = dto.WindowStart;
+        order.CollectionWindowEnd = dto.WindowEnd;
+        ApplyStatus(order, OrderStatus.ReadyForCollection, dto.Note, null, dto.UpdatedBy);
+        await _orders.UpdateAsync(order, ct);
+
+        var outstanding = await CalculateOutstandingAsync(order, ct);
+        var balanceText = outstanding > 0 ? $" Outstanding balance: R {outstanding / 100m:0.00}." : string.Empty;
+
+        await _notifications.NotifyUserAsync(
+            order.UserId,
+            "Ready for collection",
+            $"Order {order.OrderNumber} is ready. Collect at {dto.CollectionAddress} between " +
+            $"{dto.WindowStart:dd MMM HH:mm} and {dto.WindowEnd:dd MMM HH:mm}.{balanceText}",
             new Dictionary<string, string> { ["orderId"] = order.Id.ToString() },
             ct);
 
@@ -221,6 +305,25 @@ public class OrderService : IOrderService
         await _orders.UpdateAsync(order, ct);
         return order.ToDto();
     }
+
+    private async Task<long> CalculateOutstandingAsync(Order order, CancellationToken ct)
+    {
+        var total = order.TotalFinalCents ?? order.TotalIndicativeCents;
+        var requests = await _paymentRequests.GetByOrderAsync(order.Id, ct);
+        var approved = requests
+            .SelectMany(r => r.Payments)
+            .Where(p => p.ApprovedAt != null)
+            .Sum(p => p.AmountCents);
+        return Math.Max(0, total - approved);
+    }
+
+    private Task NotifyStatusAsync(Order order, string? note, CancellationToken ct) =>
+        _notifications.NotifyUserAsync(
+            order.UserId,
+            "Order update",
+            $"Order {order.OrderNumber} is now {order.Status}." + (note is null ? string.Empty : $" {note}"),
+            new Dictionary<string, string> { ["orderId"] = order.Id.ToString() },
+            ct);
 
     private static void ApplyStatus(Order order, OrderStatus status, string? note, string? photoS3Key, Guid updatedBy)
     {

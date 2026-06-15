@@ -18,16 +18,15 @@ public class ProductsController : ControllerBase
         _products = products;
     }
 
-    /// <summary>Lists products with optional category filter and keyword search (US-C05/C07).</summary>
+    /// <summary>
+    /// Lists products with optional category filter, keyword search, price range and
+    /// sort (US-C05/C07). Query: categoryId, search, minPriceCents, maxPriceCents,
+    /// sort (name|price_asc|price_desc|newest), page, pageSize.
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<PagedResult<ProductDto>>>> Get(
-        [FromQuery] Guid? categoryId,
-        [FromQuery] string? search,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
+    public async Task<ActionResult<ApiResponse<PagedResult<ProductDto>>>> Get([FromQuery] ProductQuery query, CancellationToken ct = default)
     {
-        var result = await _products.GetAsync(categoryId, search, page, pageSize, ct);
+        var result = await _products.GetAsync(query, ct);
         return Ok(ApiResponse<PagedResult<ProductDto>>.Ok(result));
     }
 

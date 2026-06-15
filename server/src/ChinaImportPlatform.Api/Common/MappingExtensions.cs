@@ -18,7 +18,10 @@ public static class MappingExtensions
         Role = user.Role,
         City = user.City,
         Suburb = user.Suburb,
-        PreferredCollectionPoint = user.PreferredCollectionPoint
+        PreferredCollectionPoint = user.PreferredCollectionPoint,
+        NotifyStatusUpdates = user.NotifyStatusUpdates,
+        NotifyAnnouncements = user.NotifyAnnouncements,
+        NotifyMessages = user.NotifyMessages
     };
 
     public static CategoryDto ToDto(this Category category, int productCount = 0) => new()
@@ -79,7 +82,8 @@ public static class MappingExtensions
         Quantity = item.Quantity,
         Note = item.Note,
         UnitPriceFinalCents = item.UnitPriceFinalCents,
-        LineStatus = item.LineStatus
+        LineStatus = item.LineStatus,
+        RejectionReason = item.RejectionReason
     };
 
     public static OrderStatusHistoryDto ToDto(this OrderStatusHistoryEntry entry) => new()
@@ -100,6 +104,9 @@ public static class MappingExtensions
         PaymentStatus = order.PaymentStatus,
         TotalIndicativeCents = order.TotalIndicativeCents,
         TotalFinalCents = order.TotalFinalCents,
+        CollectionAddress = order.CollectionAddress,
+        CollectionWindowStart = order.CollectionWindowStart,
+        CollectionWindowEnd = order.CollectionWindowEnd,
         CreatedAt = order.CreatedAt,
         Items = order.Items.Select(i => i.ToDto()).ToList(),
         StatusHistory = order.StatusHistory.OrderBy(h => h.CreatedAt).Select(h => h.ToDto()).ToList()

@@ -151,6 +151,19 @@ public class AuthService : IAuthService
         return user.ToDto();
     }
 
+    public async Task<UserDto> UpdateNotificationPreferencesAsync(Guid userId, NotificationPreferencesDto prefs, CancellationToken ct = default)
+    {
+        var user = await _users.GetByIdAsync(userId, ct)
+                   ?? throw new NotFoundException("User not found.");
+
+        user.NotifyStatusUpdates = prefs.NotifyStatusUpdates;
+        user.NotifyAnnouncements = prefs.NotifyAnnouncements;
+        user.NotifyMessages = prefs.NotifyMessages;
+
+        await _users.UpdateAsync(user, ct);
+        return user.ToDto();
+    }
+
     private async Task<AuthResponseDto> IssueTokensAsync(User user, CancellationToken ct)
     {
         var (accessToken, expiresAt) = _tokens.CreateAccessToken(user);

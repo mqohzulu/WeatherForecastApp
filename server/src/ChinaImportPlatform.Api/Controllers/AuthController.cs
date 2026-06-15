@@ -3,10 +3,12 @@ using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ChinaImportPlatform.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting("auth")]
 [Route("api/v1/auth")]
 [Produces("application/json")]
 public class AuthController : ControllerBase
@@ -64,5 +66,13 @@ public class AuthController : ControllerBase
     {
         var user = await _auth.UpdateProfileAsync(userId, dto, ct);
         return Ok(ApiResponse<UserDto>.Ok(user, "Profile updated."));
+    }
+
+    /// <summary>Toggle per-channel notification preferences (US-C15).</summary>
+    [HttpPut("profile/{userId:guid}/notification-preferences")]
+    public async Task<ActionResult<ApiResponse<UserDto>>> UpdateNotificationPreferences(Guid userId, [FromBody] NotificationPreferencesDto dto, CancellationToken ct)
+    {
+        var user = await _auth.UpdateNotificationPreferencesAsync(userId, dto, ct);
+        return Ok(ApiResponse<UserDto>.Ok(user, "Preferences updated."));
     }
 }

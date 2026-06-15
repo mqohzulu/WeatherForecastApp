@@ -1,5 +1,6 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
+using ChinaImportPlatform.Api.Enums;
 using ChinaImportPlatform.Api.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,16 +19,27 @@ public class OrdersController : ControllerBase
         _orders = orders;
     }
 
-    /// <summary>The seller's order queue (US-S01).</summary>
+    /// <summary>The seller's order queue, sortable by date|customer|value|status (US-S01).</summary>
     [Authorize(Policy = Policies.SellerOnly)]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<PagedResult<OrderDto>>>> GetQueue(
+        [FromQuery] string? sort,
+        [FromQuery] OrderStatus? status,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var result = await _orders.GetQueueAsync(page, pageSize, ct);
+        var result = await _orders.GetQueueAsync(page, pageSize, sort, status, ct);
         return Ok(ApiResponse<PagedResult<OrderDto>>.Ok(result));
+    }
+
+    /// <summary>Count of new (Placed) orders for the queue badge (US-S01).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
+    [HttpGet("new-count")]
+    public async Task<ActionResult<ApiResponse<object>>> NewCount(CancellationToken ct)
+    {
+        var count = await _orders.CountNewAsync(ct);
+        return Ok(ApiResponse<object>.Ok(new { count }));
     }
 
     /// <summary>A customer's own order history (US-C14).</summary>
@@ -80,6 +92,24 @@ public class OrdersController : ControllerBase
     {
         var updated = await _orders.SetPricingAsync(id, dto, ct);
         return Ok(ApiResponse<OrderDto>.Ok(updated));
+    }
+
+    /// <summary>Reject a single line with a reason shown to the customer (US-S04).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
+    [HttpPost("{id:guid}/lines/reject")]
+    public async Task<ActionResult<ApiResponse<OrderDto>>> RejectLine(Guid id, [FromBody] RejectLineDto dto, CancellationToken ct)
+    {
+        var updated = await _orders.RejectLineAsync(id, dto, ct);
+        return Ok(ApiResponse<OrderDto>.Ok(updated));
+    }
+
+    /// <summary>Mark an order Ready for Collection with address + time window (US-S07).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
+    [HttpPost("{id:guid}/ready-for-collection")]
+    public async Task<ActionResult<ApiResponse<OrderDto>>> MarkReady(Guid id, [FromBody] MarkReadyForCollectionDto dto, CancellationToken ct)
+    {
+        var updated = await _orders.MarkReadyForCollectionAsync(id, dto, ct);
+        return Ok(ApiResponse<OrderDto>.Ok(updated, "Marked ready for collection."));
     }
 
     /// <summary>Cancel an order while it is still Placed (US-C12).</summary>

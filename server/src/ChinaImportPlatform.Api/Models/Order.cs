@@ -23,6 +23,13 @@ public class Order : BaseEntity
 
     public long? TotalFinalCents { get; set; }
 
+    /// <summary>Collection details, set when the order is marked Ready for Collection (US-S07).</summary>
+    public string? CollectionAddress { get; set; }
+
+    public DateTime? CollectionWindowStart { get; set; }
+
+    public DateTime? CollectionWindowEnd { get; set; }
+
     public List<OrderItem> Items { get; set; } = new();
 
     public List<OrderStatusHistoryEntry> StatusHistory { get; set; } = new();
@@ -49,6 +56,9 @@ public class OrderItem
     public long? UnitPriceFinalCents { get; set; }
 
     public LineStatus LineStatus { get; set; } = LineStatus.Pending;
+
+    /// <summary>Reason recorded when the seller rejects this line (US-S04).</summary>
+    public string? RejectionReason { get; set; }
 }
 
 /// <summary>An immutable audit entry for every status change (powers the order timeline).</summary>

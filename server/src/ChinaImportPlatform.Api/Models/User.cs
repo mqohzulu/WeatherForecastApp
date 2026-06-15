@@ -22,6 +22,13 @@ public class User : BaseEntity
 
     public bool PhoneVerified { get; set; }
 
+    /// <summary>Per-channel notification preferences (US-C15). Default on.</summary>
+    public bool NotifyStatusUpdates { get; set; } = true;
+
+    public bool NotifyAnnouncements { get; set; } = true;
+
+    public bool NotifyMessages { get; set; } = true;
+
     /// <summary>Soft-delete flag; orders are anonymised rather than destroyed (POPIA).</summary>
     public bool IsDeleted { get; set; }
 }

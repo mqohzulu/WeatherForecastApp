@@ -41,6 +41,9 @@ public record UserDto
     public string? City { get; init; }
     public string? Suburb { get; init; }
     public string? PreferredCollectionPoint { get; init; }
+    public bool NotifyStatusUpdates { get; init; }
+    public bool NotifyAnnouncements { get; init; }
+    public bool NotifyMessages { get; init; }
 }
 
 public record UpdateProfileDto
@@ -50,4 +53,12 @@ public record UpdateProfileDto
     public string? City { get; init; }
     public string? Suburb { get; init; }
     public string? PreferredCollectionPoint { get; init; }
+}
+
+/// <summary>Per-channel notification preferences (US-C15).</summary>
+public record NotificationPreferencesDto
+{
+    public bool NotifyStatusUpdates { get; init; } = true;
+    public bool NotifyAnnouncements { get; init; } = true;
+    public bool NotifyMessages { get; init; } = true;
 }

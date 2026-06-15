@@ -14,4 +14,7 @@ public interface IAuthService
     Task<UserDto> GetProfileAsync(Guid userId, CancellationToken ct = default);
 
     Task<UserDto> UpdateProfileAsync(Guid userId, UpdateProfileDto request, CancellationToken ct = default);
+
+    /// <summary>Toggle the per-channel notification preferences (US-C15).</summary>
+    Task<UserDto> UpdateNotificationPreferencesAsync(Guid userId, NotificationPreferencesDto prefs, CancellationToken ct = default);
 }

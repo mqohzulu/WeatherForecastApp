@@ -1,3 +1,4 @@
+using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.Enums;
 using ChinaImportPlatform.Api.IRepos;
@@ -12,17 +13,20 @@ public class ConsolidatedDemandService : IConsolidatedDemandService
     private readonly IProductRepository _products;
     private readonly IUserRepository _users;
     private readonly ICategoryRepository _categories;
+    private readonly INotificationService _notifications;
 
     public ConsolidatedDemandService(
         IOrderRepository orders,
         IProductRepository products,
         IUserRepository users,
-        ICategoryRepository categories)
+        ICategoryRepository categories,
+        INotificationService notifications)
     {
         _orders = orders;
         _products = products;
         _users = users;
         _categories = categories;
+        _notifications = notifications;
     }
 
     public async Task<IReadOnlyList<ConsolidatedDemandLineDto>> GetAsync(
@@ -114,5 +118,61 @@ public class ConsolidatedDemandService : IConsolidatedDemandService
         return lines
             .OrderByDescending(l => l.TotalQuantity)
             .ToList();
+    }
+
+    public async Task<IReadOnlyList<OrderDto>> MarkSourcedAsync(MarkDemandSourcedDto dto, CancellationToken ct = default)
+    {
+        var orders = await _orders.GetAllAsync(ct);
+        var affected = new List<OrderDto>();
+
+        foreach (var order in orders)
+        {
+            if (dto.TripId is not null && order.TripId != dto.TripId)
+            {
+                continue;
+            }
+
+            if (order.Status is OrderStatus.Cancelled or OrderStatus.Rejected or OrderStatus.Completed)
+            {
+                continue;
+            }
+
+            var matchingLines = order.Items
+                .Where(i => i.ProductId == dto.ProductId
+                            && i.VariantId == dto.VariantId
+                            && i.LineStatus != LineStatus.Rejected)
+                .ToList();
+
+            if (matchingLines.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var line in matchingLines)
+            {
+                line.LineStatus = LineStatus.Sourced;
+            }
+
+            order.Status = OrderStatus.BeingSourced;
+            order.StatusHistory.Add(new OrderStatusHistoryEntry
+            {
+                Status = OrderStatus.BeingSourced,
+                Note = dto.Note ?? "Item sourced from the consolidated buying list.",
+                CreatedBy = dto.UpdatedBy
+            });
+
+            await _orders.UpdateAsync(order, ct);
+
+            await _notifications.NotifyUserAsync(
+                order.UserId,
+                "Order update",
+                $"Order {order.OrderNumber} is now BeingSourced.",
+                new Dictionary<string, string> { ["orderId"] = order.Id.ToString() },
+                ct);
+
+            affected.Add(order.ToDto());
+        }
+
+        return affected;
     }
 }

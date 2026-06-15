@@ -23,3 +23,16 @@ public record ConsolidatedDemandLineDto
     public int CustomerCount { get; init; }
     public IReadOnlyList<DemandCustomerDto> Customers { get; init; } = Array.Empty<DemandCustomerDto>();
 }
+
+/// <summary>
+/// Tick an item off the buying list: marks the matching line on every linked order as
+/// sourced and moves those orders to Being Sourced in one action (US-S02).
+/// </summary>
+public record MarkDemandSourcedDto
+{
+    public Guid? ProductId { get; init; }
+    public Guid? VariantId { get; init; }
+    public Guid? TripId { get; init; }
+    public string? Note { get; init; }
+    public Guid UpdatedBy { get; init; }
+}

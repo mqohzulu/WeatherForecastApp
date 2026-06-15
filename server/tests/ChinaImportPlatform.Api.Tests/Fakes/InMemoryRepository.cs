@@ -77,6 +77,14 @@ public class FakeProductRepository : InMemoryRepository<Product>, IProductReposi
             Items.Where(p => p.Name.Contains(term, StringComparison.OrdinalIgnoreCase)).ToList());
 }
 
+public class FakePaymentRequestRepository : InMemoryRepository<PaymentRequest>, IPaymentRequestRepository
+{
+    public FakePaymentRequestRepository(IEnumerable<PaymentRequest>? seed = null) : base(seed) { }
+
+    public Task<IReadOnlyList<PaymentRequest>> GetByOrderAsync(Guid orderId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<PaymentRequest>>(Items.Where(p => p.OrderId == orderId).ToList());
+}
+
 public class NullNotificationService : ChinaImportPlatform.Api.IServices.INotificationService
 {
     public Task NotifyUserAsync(Guid userId, string title, string body, IDictionary<string, string>? data = null, CancellationToken ct = default) =>

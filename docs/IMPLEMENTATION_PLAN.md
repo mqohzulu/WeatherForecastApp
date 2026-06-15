@@ -155,10 +155,23 @@ provides the matching feature-first architecture and the core flows.
 EF Core repository implementations (`Repos/Ef/`) are in place behind a `DataProvider`
 switch, so the database drops in with one config flag.
 
-**Still outstanding** (next up): FCM/APNs behind `INotificationService`; SignalR real-time
-chat; the accept/decline-quote flow; ready-for-collection fields; FluentValidation on
-writes; and the Phase-3/4 features (payment reminders, finance summary, analytics, POPIA
-tooling).
+**Phase 1 (MVP) is feature-complete on the API** (all codeable stories):
+- US-C01–03 OTP auth + profile; US-C05–07 catalogue browse/detail/**search with price
+  range + sort**; US-C08–09/C12 cart submission + cancel; US-C14 status timeline;
+  US-C15 status notifications + **notification preferences**.
+- US-S01 order queue (**sortable, customer names, new-order count**); US-S02 consolidated
+  demand + **tick-off → Being Sourced**; US-S04 confirm/price/**reject line with reason**;
+  US-S05–06 single + bulk status updates; US-S07 **ready-for-collection (address, window,
+  outstanding balance)**; US-S11 catalogue management.
+- US-X01 JWT + refresh rotation + role authorization; US-X03 **rate limiting** on auth +
+  messaging; cross-cutting **FluentValidation** on write endpoints.
+
+Infra-only Phase-1 stories are deployment concerns, not code: US-X02 (TLS / encryption at
+rest), US-X04 (RDS backups / PITR), US-C06 image CDN, US-X06 device performance.
+
+**Still outstanding** (Phase 2+): FCM/APNs behind `INotificationService`; SignalR
+real-time chat; accept/decline-quote (US-C11); custom-order quote queue (US-S12); and the
+Phase-3/4 features (payment reminders, finance summary, analytics, POPIA tooling).
 
 ---
 

@@ -15,34 +15,48 @@ public class ProductService : IProductService
         _products = products;
     }
 
-    public async Task<PagedResult<ProductDto>> GetAsync(Guid? categoryId, string? search, int page, int pageSize, CancellationToken ct = default)
+    public async Task<PagedResult<ProductDto>> GetAsync(ProductQuery query, CancellationToken ct = default)
     {
-        IReadOnlyList<Models.Product> source;
+        IEnumerable<Models.Product> source;
 
-        if (!string.IsNullOrWhiteSpace(search))
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            source = await _products.SearchAsync(search, ct);
+            source = await _products.SearchAsync(query.Search, ct);
         }
-        else if (categoryId.HasValue)
+        else if (query.CategoryId.HasValue)
         {
-            source = await _products.GetByCategoryAsync(categoryId.Value, ct);
+            source = await _products.GetByCategoryAsync(query.CategoryId.Value, ct);
         }
         else
         {
             source = await _products.FindAsync(p => p.IsActive, ct);
         }
 
-        if (categoryId.HasValue)
+        if (query.CategoryId.HasValue)
         {
-            source = source.Where(p => p.CategoryId == categoryId.Value).ToList();
+            source = source.Where(p => p.CategoryId == query.CategoryId.Value);
         }
 
-        var dtos = source
-            .OrderBy(p => p.Name)
-            .Select(p => p.ToDto())
-            .ToList();
+        if (query.MinPriceCents.HasValue)
+        {
+            source = source.Where(p => p.IndicativePriceCents >= query.MinPriceCents.Value);
+        }
 
-        return PagedResult<ProductDto>.Create(dtos, page, pageSize);
+        if (query.MaxPriceCents.HasValue)
+        {
+            source = source.Where(p => p.IndicativePriceCents <= query.MaxPriceCents.Value);
+        }
+
+        source = query.Sort switch
+        {
+            "price_asc" => source.OrderBy(p => p.IndicativePriceCents),
+            "price_desc" => source.OrderByDescending(p => p.IndicativePriceCents),
+            "newest" => source.OrderByDescending(p => p.CreatedAt),
+            _ => source.OrderBy(p => p.Name)
+        };
+
+        var dtos = source.Select(p => p.ToDto()).ToList();
+        return PagedResult<ProductDto>.Create(dtos, query.Page, query.PageSize);
     }
 
     public async Task<ProductDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
