@@ -1,9 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using ChinaImportPlatform.Api.Common;
-using ChinaImportPlatform.Api.IRepos;
 using ChinaImportPlatform.Api.IServices;
-using ChinaImportPlatform.Api.Repos;
 using ChinaImportPlatform.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -32,24 +30,13 @@ if (string.IsNullOrWhiteSpace(jsonStoreOptions.DataPath))
 {
     jsonStoreOptions.DataPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "SeedData");
 }
-builder.Services.AddSingleton(jsonStoreOptions);
 
 // ---------------------------------------------------------------------------
-// Repositories (JSON-backed). Registered as singletons because each holds an
-// in-memory cache of its file. To move to PostgreSQL, implement these
-// interfaces against AppDbContext and swap the registrations below.
+// Data access. JSON-file backed by default so the API runs with zero setup.
+// Set "DataProvider": "Postgres" (and ConnectionStrings:Postgres) to switch to
+// EF Core + Npgsql — no other code changes. See Common/DataAccessRegistration.
 // ---------------------------------------------------------------------------
-builder.Services.AddSingleton<IUserRepository, UserRepository>();
-builder.Services.AddSingleton<ICategoryRepository, CategoryRepository>();
-builder.Services.AddSingleton<IProductRepository, ProductRepository>();
-builder.Services.AddSingleton<ITripRepository, TripRepository>();
-builder.Services.AddSingleton<IOrderRepository, OrderRepository>();
-builder.Services.AddSingleton<IAnnouncementRepository, AnnouncementRepository>();
-builder.Services.AddSingleton<IPaymentRequestRepository, PaymentRequestRepository>();
-builder.Services.AddSingleton<IConversationRepository, ConversationRepository>();
-builder.Services.AddSingleton<IMessageRepository, MessageRepository>();
-builder.Services.AddSingleton<IRefreshTokenRepository, RefreshTokenRepository>();
-builder.Services.AddSingleton<IDeviceTokenRepository, DeviceTokenRepository>();
+builder.Services.AddDataAccess(builder.Configuration, jsonStoreOptions);
 
 // ---------------------------------------------------------------------------
 // Application services
@@ -67,13 +54,6 @@ builder.Services.AddScoped<IConsolidatedDemandService, ConsolidatedDemandService
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IMessagingService, MessagingService>();
-
-// ---------------------------------------------------------------------------
-// When you connect PostgreSQL, uncomment the lines below (and add EF repos):
-//
-// builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Authentication & authorization (JWT bearer)

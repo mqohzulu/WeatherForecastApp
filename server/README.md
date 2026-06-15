@@ -46,17 +46,25 @@ consolidated-demand endpoint returns "14 angle grinders across 2 customers" from
 seeded orders.
 
 ## Connecting your PostgreSQL database
-1. Put the connection string in `ConnectionStrings:Postgres` (use AWS Secrets Manager in
-   real environments).
-2. In `Program.cs`, uncomment the `AddDbContext<AppDbContext>(… UseNpgsql …)` block.
-3. Add EF Core implementations of the `IRepos` interfaces backed by `AppDbContext` and
-   register them in place of the JSON repositories.
-4. Create and apply the schema:
+The EF Core repositories are already written (`Repos/Ef/`), so switching is configuration
+only — flip one flag:
+
+1. Set `"DataProvider": "Postgres"` and put the connection string in
+   `ConnectionStrings:Postgres` (use AWS Secrets Manager in real environments).
+2. Generate and **review** the initial migration, then apply it:
    ```bash
    dotnet ef migrations add InitialCreate --project src/ChinaImportPlatform.Api
    dotnet ef database update --project src/ChinaImportPlatform.Api
    ```
-Because controllers and services depend only on the interfaces, **no other code changes.**
+
+`Common/DataAccessRegistration.cs` reads `DataProvider` and registers either the JSON
+repositories (default) or the EF Core repositories — both behind the same `IRepos`
+interfaces, so controllers and services are untouched. Child collections are mapped as
+JSON columns on their aggregate, so disconnected updates just overwrite the document.
+
+> Because I can't run the .NET SDK in this environment, review the generated migration
+> before applying it — in particular the `Variants`/`Images`/`Items` JSON columns and the
+> variant `attributes` mapping, which may want a tweak for your exact EF/Npgsql versions.
 
 ## Authentication & authorization
 - **Real JWTs.** `POST /api/v1/auth/verify-otp` returns a signed JWT access token and a

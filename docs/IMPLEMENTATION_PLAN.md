@@ -73,14 +73,14 @@ have a repository pull from it." This is implemented as:
   each and add aggregate-specific queries.
 - `Data/SeedData/*.json` — realistic, relationally-consistent test data.
 
-**Switching to PostgreSQL** (when you connect your DB):
-1. Set `ConnectionStrings:Postgres` (ideally via AWS Secrets Manager).
-2. Uncomment `AddDbContext<AppDbContext>(…UseNpgsql…)` in `Program.cs`.
-3. Add EF Core implementations of the `IRepos` interfaces backed by `AppDbContext`,
-   and register them instead of the JSON repositories.
-4. `dotnet ef migrations add InitialCreate && dotnet ef database update`.
+**Switching to PostgreSQL** (when you connect your DB) — the EF Core repositories already
+exist (`Repos/Ef/`), so this is configuration-only:
+1. Set `"DataProvider": "Postgres"` and `ConnectionStrings:Postgres` (via AWS Secrets Manager).
+2. `dotnet ef migrations add InitialCreate && dotnet ef database update` (review the migration first).
 
-No controller or service changes are required — only the DI registrations.
+`Common/DataAccessRegistration.cs` selects JSON (default) or EF repositories from the
+`DataProvider` flag; both implement the same `IRepos` interfaces, so no controller or
+service changes are required.
 
 ### REST resource groups (all under `/api/v1`)
 | Group | Endpoints (representative) | Stories |
@@ -152,10 +152,13 @@ status + bulk updates, consolidated demand, trips, and announcements — plus sc
 for Phase-2/3 (messaging, payments) and a DB-ready EF Core context. The Flutter client
 provides the matching feature-first architecture and the core flows.
 
-**Still outstanding** (next up): EF Core repository implementations so the database
-drops in; FCM/APNs behind `INotificationService`; SignalR real-time chat; the
-accept/decline-quote flow; ready-for-collection fields; FluentValidation on writes; and
-the Phase-3/4 features (payment reminders, finance summary, analytics, POPIA tooling).
+EF Core repository implementations (`Repos/Ef/`) are in place behind a `DataProvider`
+switch, so the database drops in with one config flag.
+
+**Still outstanding** (next up): FCM/APNs behind `INotificationService`; SignalR real-time
+chat; the accept/decline-quote flow; ready-for-collection fields; FluentValidation on
+writes; and the Phase-3/4 features (payment reminders, finance summary, analytics, POPIA
+tooling).
 
 ---
 

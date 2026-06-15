@@ -1,20 +1,25 @@
+using System.Text.Json;
 using ChinaImportPlatform.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ChinaImportPlatform.Api.Data;
 
 /// <summary>
-/// EF Core context for the future PostgreSQL database. It is NOT used by the running
-/// application yet — the API serves data from JSON-backed repositories so it can run
-/// without a database. When you are ready to connect your DB:
+/// EF Core context for the PostgreSQL database. It is only used when the API is started
+/// with "DataProvider": "Postgres"; the default JSON-backed provider needs no database.
+/// To connect your database:
 ///
-///   1. Set the "ConnectionStrings:Postgres" value in configuration / Secrets Manager.
-///   2. Uncomment the AddDbContext + EF repository registrations in Program.cs.
-///   3. Create EF Core implementations of the IRepos interfaces backed by this context.
-///   4. Run: dotnet ef migrations add InitialCreate &amp;&amp; dotnet ef database update
+///   1. Set ConnectionStrings:Postgres (ideally from AWS Secrets Manager) and
+///      "DataProvider": "Postgres" in configuration.
+///   2. Generate and REVIEW the initial migration, then apply it:
+///        dotnet ef migrations add InitialCreate --project src/ChinaImportPlatform.Api
+///        dotnet ef database update      --project src/ChinaImportPlatform.Api
 ///
-/// The owned-type configuration mirrors the JSON aggregates (Order owns its items and
-/// status history; Product owns its variants and images; PaymentRequest owns its payments).
+/// Child collections are owned by their aggregate and mapped as JSON columns (Order owns
+/// Items + StatusHistory; Product owns Variants + Images; PaymentRequest owns Payments).
+/// This keeps disconnected updates trivial (the JSON document is overwritten as a whole).
 /// </summary>
 public class AppDbContext : DbContext
 {
@@ -30,10 +35,24 @@ public class AppDbContext : DbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<PaymentRequest> PaymentRequests => Set<PaymentRequest>();
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Variant attributes (size/colour/model) persist as a JSON string so the
+        // dictionary maps cleanly inside the owned JSON document.
+        var attributesConverter = new ValueConverter<Dictionary<string, string>, string>(
+            d => JsonSerializer.Serialize(d, (JsonSerializerOptions?)null),
+            s => string.IsNullOrEmpty(s)
+                ? new Dictionary<string, string>()
+                : JsonSerializer.Deserialize<Dictionary<string, string>>(s, (JsonSerializerOptions?)null) ?? new Dictionary<string, string>());
+
+        var attributesComparer = new ValueComparer<Dictionary<string, string>>(
+            (a, b) => JsonSerializer.Serialize(a, (JsonSerializerOptions?)null) == JsonSerializer.Serialize(b, (JsonSerializerOptions?)null),
+            v => v == null ? 0 : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null).GetHashCode(),
+            v => JsonSerializer.Deserialize<Dictionary<string, string>>(JsonSerializer.Serialize(v, (JsonSerializerOptions?)null), (JsonSerializerOptions?)null) ?? new Dictionary<string, string>());
 
         modelBuilder.Entity<User>(b =>
         {
@@ -50,19 +69,20 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Product>(b =>
         {
             b.Property(p => p.Name).HasMaxLength(200).IsRequired();
+            b.HasIndex(p => p.CategoryId);
             b.OwnsMany(p => p.Variants, v =>
             {
                 v.ToJson();
+                v.Property(pv => pv.Attributes)
+                    .HasConversion(attributesConverter, attributesComparer);
             });
-            b.OwnsMany(p => p.Images, i =>
-            {
-                i.ToJson();
-            });
+            b.OwnsMany(p => p.Images, i => i.ToJson());
         });
 
         modelBuilder.Entity<Order>(b =>
         {
             b.HasIndex(o => o.OrderNumber).IsUnique();
+            b.HasIndex(o => o.UserId);
             b.HasIndex(o => new { o.TripId, o.Status });
             b.OwnsMany(o => o.Items, i => i.ToJson());
             b.OwnsMany(o => o.StatusHistory, h => h.ToJson());
@@ -74,6 +94,11 @@ public class AppDbContext : DbContext
             b.OwnsMany(p => p.Payments, pay => pay.ToJson());
         });
 
+        modelBuilder.Entity<Conversation>(b =>
+        {
+            b.HasIndex(c => c.CustomerId);
+        });
+
         modelBuilder.Entity<Message>(b =>
         {
             b.HasIndex(m => m.ConversationId);
@@ -82,6 +107,12 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<DeviceToken>(b =>
         {
             b.HasIndex(d => new { d.UserId, d.Platform });
+        });
+
+        modelBuilder.Entity<RefreshToken>(b =>
+        {
+            b.HasIndex(t => t.TokenHash);
+            b.HasIndex(t => t.UserId);
         });
     }
 }
