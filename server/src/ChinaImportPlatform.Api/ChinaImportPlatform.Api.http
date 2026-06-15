@@ -1,9 +1,11 @@
 @host = http://localhost:5000
+# After verify-otp, paste the accessToken here to call secured endpoints.
+@token = PASTE_ACCESS_TOKEN
 
-### Health check
+### Health check (public)
 GET {{host}}/health
 
-### Request an OTP (returns devOtp in the scaffold)
+### Request an OTP (returns devOtp in Development)
 POST {{host}}/api/v1/auth/request-otp
 Content-Type: application/json
 
@@ -21,8 +23,28 @@ Content-Type: application/json
   "otp": "000000"
 }
 
-### List active categories
+### Refresh the access token
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "PASTE_REFRESH_TOKEN"
+}
+
+### Register a push token
+POST {{host}}/api/v1/devices
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userId": "00000000-0000-0000-0000-000000000002",
+  "fcmToken": "example-fcm-token",
+  "platform": "android"
+}
+
+### List active categories (requires auth)
 GET {{host}}/api/v1/categories
+Authorization: Bearer {{token}}
 
 ### List products in the Machinery category
 GET {{host}}/api/v1/products?categoryId=10000000-0000-0000-0000-000000000001
@@ -32,6 +54,7 @@ GET {{host}}/api/v1/products?search=grinder
 
 ### Place an order
 POST {{host}}/api/v1/orders
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -42,14 +65,17 @@ Content-Type: application/json
   ]
 }
 
-### Seller order queue
+### Seller order queue (Seller role required)
 GET {{host}}/api/v1/orders
+Authorization: Bearer {{token}}
 
-### Consolidated demand for the July trip
+### Consolidated demand for the July trip (Seller role required)
 GET {{host}}/api/v1/consolidated-demand?tripId=40000000-0000-0000-0000-000000000001
+Authorization: Bearer {{token}}
 
-### Update an order status
+### Update an order status (Seller role required)
 PUT {{host}}/api/v1/orders/50000000-0000-0000-0000-000000000003/status
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -60,3 +86,4 @@ Content-Type: application/json
 
 ### Announcements feed
 GET {{host}}/api/v1/announcements
+Authorization: Bearer {{token}}

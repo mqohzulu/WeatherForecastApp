@@ -1,9 +1,13 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.IRepos;
 using ChinaImportPlatform.Api.IServices;
 using ChinaImportPlatform.Api.Repos;
 using ChinaImportPlatform.Api.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -44,12 +48,17 @@ builder.Services.AddSingleton<IAnnouncementRepository, AnnouncementRepository>()
 builder.Services.AddSingleton<IPaymentRequestRepository, PaymentRequestRepository>();
 builder.Services.AddSingleton<IConversationRepository, ConversationRepository>();
 builder.Services.AddSingleton<IMessageRepository, MessageRepository>();
+builder.Services.AddSingleton<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddSingleton<IDeviceTokenRepository, DeviceTokenRepository>();
 
 // ---------------------------------------------------------------------------
 // Application services
 // ---------------------------------------------------------------------------
 builder.Services.AddSingleton<INotificationService, LoggingNotificationService>();
+builder.Services.AddSingleton<ISmsSender, LoggingSmsSender>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ITripService, TripService>();
@@ -65,6 +74,45 @@ builder.Services.AddScoped<IMessagingService, MessagingService>();
 // builder.Services.AddDbContext<AppDbContext>(options =>
 //     options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Authentication & authorization (JWT bearer)
+// ---------------------------------------------------------------------------
+var jwtOptions = new JwtOptions();
+builder.Configuration.GetSection(JwtOptions.SectionName).Bind(jwtOptions);
+if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey))
+{
+    // Development fallback so the API runs without configuration. Production MUST
+    // supply Jwt:SigningKey from AWS Secrets Manager (>= 32 chars).
+    jwtOptions.SigningKey = "dev-only-signing-key-change-me-please-32+chars-minimum";
+}
+builder.Services.AddSingleton(jwtOptions);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidAudience = jwtOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Policies.SellerOnly, policy => policy.RequireRole("Seller"));
+
+    // Closed user base: every endpoint requires authentication unless [AllowAnonymous].
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -82,6 +130,19 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "REST API for the private ordering and distribution platform."
     });
+
+    var scheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Paste the JWT access token (without the 'Bearer' prefix).",
+        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+    };
+    options.AddSecurityDefinition("Bearer", scheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement { [scheme] = Array.Empty<string>() });
 });
 
 builder.Services.AddCors(options =>
@@ -106,6 +167,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

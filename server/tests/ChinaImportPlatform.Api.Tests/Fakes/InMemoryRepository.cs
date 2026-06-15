@@ -85,3 +85,22 @@ public class NullNotificationService : ChinaImportPlatform.Api.IServices.INotifi
     public Task BroadcastAsync(string? segment, string title, string body, IDictionary<string, string>? data = null, CancellationToken ct = default) =>
         Task.CompletedTask;
 }
+
+public class FakeUserRepository : InMemoryRepository<User>, IUserRepository
+{
+    public FakeUserRepository(IEnumerable<User>? seed = null) : base(seed) { }
+
+    public Task<User?> GetByPhoneAsync(string phoneNumber, CancellationToken ct = default) =>
+        Task.FromResult(Items.FirstOrDefault(u => u.PhoneNumber == phoneNumber && !u.IsDeleted));
+}
+
+public class FakeRefreshTokenRepository : InMemoryRepository<RefreshToken>, IRefreshTokenRepository
+{
+    public Task<RefreshToken?> GetByHashAsync(string tokenHash, CancellationToken ct = default) =>
+        Task.FromResult(Items.FirstOrDefault(t => t.TokenHash == tokenHash));
+}
+
+public class NullSmsSender : ChinaImportPlatform.Api.IServices.ISmsSender
+{
+    public Task SendOtpAsync(string phoneNumber, string otp, CancellationToken ct = default) => Task.CompletedTask;
+}

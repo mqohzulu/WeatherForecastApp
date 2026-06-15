@@ -2,11 +2,13 @@ using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.Enums;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = Policies.SellerOnly)]
 [Route("api/v1/consolidated-demand")]
 [Produces("application/json")]
 public class ConsolidatedDemandController : ControllerBase

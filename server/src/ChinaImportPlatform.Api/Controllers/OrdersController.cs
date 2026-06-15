@@ -1,6 +1,7 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
@@ -18,6 +19,7 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>The seller's order queue (US-S01).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<PagedResult<OrderDto>>>> GetQueue(
         [FromQuery] int page = 1,
@@ -54,6 +56,7 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>Update a single order's status with an optional note (US-S05).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPut("{id:guid}/status")]
     public async Task<ActionResult<ApiResponse<OrderDto>>> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusDto dto, CancellationToken ct)
     {
@@ -62,6 +65,7 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>Update many orders' status in one action (US-S06).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPost("bulk-status")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<OrderDto>>>> BulkUpdateStatus([FromBody] BulkUpdateOrderStatusDto dto, CancellationToken ct)
     {
@@ -70,6 +74,7 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>Set/adjust the final price per line item (US-S04).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPut("{id:guid}/pricing")]
     public async Task<ActionResult<ApiResponse<OrderDto>>> SetPricing(Guid id, [FromBody] SetOrderPricingDto dto, CancellationToken ct)
     {

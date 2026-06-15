@@ -10,23 +10,36 @@ using ChinaImportPlatform.Api.Models;
 namespace ChinaImportPlatform.Api.Services;
 
 /// <summary>
-/// Phone + OTP authentication. This is a development-grade implementation: OTPs are
-/// held in memory and tokens are opaque placeholders. The production version will
-/// send OTPs via an SMS provider and issue signed JWTs with refresh-token rotation
-/// (US-X01). The contract (<see cref="IAuthService"/>) does not change.
+/// Phone + OTP authentication issuing signed JWT access tokens with rotating refresh
+/// tokens (US-X01). OTP delivery goes through <see cref="ISmsSender"/>; in the scaffold
+/// the OTP is held in memory and logged. The OTP store should move to a distributed
+/// cache (e.g. Redis/ElastiCache) once the API runs on more than one instance.
 /// </summary>
 public class AuthService : IAuthService
 {
     private static readonly ConcurrentDictionary<string, (string Otp, DateTime Expiry)> OtpStore = new();
     private static readonly TimeSpan OtpLifetime = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
 
     private readonly IUserRepository _users;
+    private readonly IRefreshTokenRepository _refreshTokens;
+    private readonly ITokenService _tokens;
+    private readonly ISmsSender _sms;
+    private readonly JwtOptions _jwtOptions;
     private readonly ILogger<AuthService> _logger;
 
-    public AuthService(IUserRepository users, ILogger<AuthService> logger)
+    public AuthService(
+        IUserRepository users,
+        IRefreshTokenRepository refreshTokens,
+        ITokenService tokens,
+        ISmsSender sms,
+        JwtOptions jwtOptions,
+        ILogger<AuthService> logger)
     {
         _users = users;
+        _refreshTokens = refreshTokens;
+        _tokens = tokens;
+        _sms = sms;
+        _jwtOptions = jwtOptions;
         _logger = logger;
     }
 
@@ -53,8 +66,7 @@ public class AuthService : IAuthService
         var otp = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         OtpStore[request.PhoneNumber] = (otp, DateTime.UtcNow.Add(OtpLifetime));
 
-        // In production this is sent by SMS; here it is logged and returned for testing only.
-        _logger.LogInformation("OTP for {Phone} is {Otp} (valid 5 min)", request.PhoneNumber, otp);
+        await _sms.SendOtpAsync(request.PhoneNumber, otp, ct);
         return otp;
     }
 
@@ -87,18 +99,34 @@ public class AuthService : IAuthService
             await _users.UpdateAsync(user, ct);
         }
 
-        return BuildAuthResponse(user);
+        return await IssueTokensAsync(user, ct);
     }
 
-    public Task<AuthResponseDto> RefreshAsync(RefreshTokenDto request, CancellationToken ct = default)
+    public async Task<AuthResponseDto> RefreshAsync(RefreshTokenDto request, CancellationToken ct = default)
     {
-        // Placeholder: a production implementation validates and rotates the refresh token.
         if (string.IsNullOrWhiteSpace(request.RefreshToken))
         {
             throw new AppException("A refresh token is required.");
         }
 
-        throw new AppException("Token refresh is not implemented in the JSON-backed scaffold.", 501);
+        var hash = _tokens.Hash(request.RefreshToken);
+        var stored = await _refreshTokens.GetByHashAsync(hash, ct);
+
+        if (stored is null || !stored.IsActive)
+        {
+            throw new AppException("The refresh token is invalid or expired.", 401);
+        }
+
+        var user = await _users.GetByIdAsync(stored.UserId, ct)
+                   ?? throw new NotFoundException("User not found.");
+
+        // Rotate: revoke the presented token before issuing a new pair.
+        var response = await IssueTokensAsync(user, ct);
+        stored.RevokedAt = DateTime.UtcNow;
+        stored.ReplacedByTokenHash = _tokens.Hash(response.RefreshToken);
+        await _refreshTokens.UpdateAsync(stored, ct);
+
+        return response;
     }
 
     public async Task<UserDto> GetProfileAsync(Guid userId, CancellationToken ct = default)
@@ -123,14 +151,24 @@ public class AuthService : IAuthService
         return user.ToDto();
     }
 
-    private static AuthResponseDto BuildAuthResponse(User user) => new()
+    private async Task<AuthResponseDto> IssueTokensAsync(User user, CancellationToken ct)
     {
-        AccessToken = GenerateOpaqueToken(),
-        RefreshToken = GenerateOpaqueToken(),
-        AccessTokenExpiresAt = DateTime.UtcNow.Add(AccessTokenLifetime),
-        User = user.ToDto()
-    };
+        var (accessToken, expiresAt) = _tokens.CreateAccessToken(user);
+        var rawRefresh = _tokens.CreateRefreshToken();
 
-    private static string GenerateOpaqueToken() =>
-        Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        await _refreshTokens.AddAsync(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = _tokens.Hash(rawRefresh),
+            ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)
+        }, ct);
+
+        return new AuthResponseDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = rawRefresh,
+            AccessTokenExpiresAt = expiresAt,
+            User = user.ToDto()
+        };
+    }
 }

@@ -1,6 +1,7 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
@@ -11,23 +12,30 @@ namespace ChinaImportPlatform.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
+    private readonly IWebHostEnvironment _environment;
 
-    public AuthController(IAuthService auth)
+    public AuthController(IAuthService auth, IWebHostEnvironment environment)
     {
         _auth = auth;
+        _environment = environment;
     }
 
     /// <summary>Request an OTP for registration or sign-in.</summary>
+    [AllowAnonymous]
     [HttpPost("request-otp")]
     public async Task<ActionResult<ApiResponse<object>>> RequestOtp([FromBody] RequestOtpDto dto, CancellationToken ct)
     {
         var otp = await _auth.RequestOtpAsync(dto, ct);
 
-        // The OTP is returned only because there is no SMS provider in the scaffold.
-        return Ok(ApiResponse<object>.Ok(new { devOtp = otp }, "OTP sent."));
+        // Outside Development the OTP is delivered by SMS and never returned in the response.
+        object payload = _environment.IsDevelopment()
+            ? new { devOtp = otp }
+            : new { };
+        return Ok(ApiResponse<object>.Ok(payload, "OTP sent."));
     }
 
     /// <summary>Verify an OTP and receive access/refresh tokens.</summary>
+    [AllowAnonymous]
     [HttpPost("verify-otp")]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> VerifyOtp([FromBody] VerifyOtpDto dto, CancellationToken ct)
     {
@@ -36,6 +44,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>Exchange a refresh token for a new access token.</summary>
+    [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Refresh([FromBody] RefreshTokenDto dto, CancellationToken ct)
     {

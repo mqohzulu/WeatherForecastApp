@@ -145,10 +145,17 @@ Three cooperating delivery paths (built progressively):
 | **4 – Insight (2–3 wks)** | Analytics dashboards, exports, account deletion / POPIA tooling. | US-C04; US-S15; US-X05 |
 
 **What this repository ships today:** the Phase-1 API surface end-to-end against JSON
-test data (auth stub, catalogue, ordering, order status + bulk updates, consolidated
-demand, trips, announcements), plus scaffolding for Phase-2/3 (messaging, payments) and
-a DB-ready EF Core context. The Flutter client provides the matching feature-first
-architecture and the core flows.
+test data — real JWT authentication with refresh-token rotation and role-based
+authorization (closed user base; seller-only management endpoints), OTP delivery via a
+pluggable `ISmsSender`, device push-token registration, catalogue, ordering, order
+status + bulk updates, consolidated demand, trips, and announcements — plus scaffolding
+for Phase-2/3 (messaging, payments) and a DB-ready EF Core context. The Flutter client
+provides the matching feature-first architecture and the core flows.
+
+**Still outstanding** (next up): EF Core repository implementations so the database
+drops in; FCM/APNs behind `INotificationService`; SignalR real-time chat; the
+accept/decline-quote flow; ready-for-collection fields; FluentValidation on writes; and
+the Phase-3/4 features (payment reminders, finance summary, analytics, POPIA tooling).
 
 ---
 

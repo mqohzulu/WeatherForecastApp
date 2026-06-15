@@ -1,6 +1,7 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
@@ -26,6 +27,7 @@ public class AnnouncementsController : ControllerBase
     }
 
     /// <summary>Send a broadcast to all customers or a segment (US-S08).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<AnnouncementDto>>> Create([FromBody] CreateAnnouncementDto dto, CancellationToken ct)
     {

@@ -1,6 +1,7 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
@@ -25,6 +26,7 @@ public class PaymentRequestsController : ControllerBase
     }
 
     /// <summary>Seller sends a structured payment request against an order (US-S10).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<PaymentRequestDto>>> Create([FromBody] CreatePaymentRequestDto dto, CancellationToken ct)
     {
@@ -41,6 +43,7 @@ public class PaymentRequestsController : ControllerBase
     }
 
     /// <summary>Seller approves a proof of payment (US-S10).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPost("{id:guid}/payments/{paymentId:guid}/approve")]
     public async Task<ActionResult<ApiResponse<PaymentRequestDto>>> Approve(Guid id, Guid paymentId, CancellationToken ct)
     {

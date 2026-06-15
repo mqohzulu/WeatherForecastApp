@@ -1,6 +1,7 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
@@ -18,6 +19,7 @@ public class ConversationsController : ControllerBase
     }
 
     /// <summary>The seller's unified inbox (US-S09).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<ConversationDto>>>> Get(CancellationToken ct)
     {

@@ -1,6 +1,7 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
@@ -34,6 +35,7 @@ public class TripsController : ControllerBase
     }
 
     /// <summary>Creates a trip and publishes the cut-off announcement (US-S03).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<TripDto>>> Create([FromBody] CreateTripDto dto, CancellationToken ct)
     {
@@ -41,6 +43,7 @@ public class TripsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiResponse<TripDto>.Ok(created));
     }
 
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPut("{id:guid}/status")]
     public async Task<ActionResult<ApiResponse<TripDto>>> UpdateStatus(Guid id, [FromBody] UpdateTripStatusDto dto, CancellationToken ct)
     {

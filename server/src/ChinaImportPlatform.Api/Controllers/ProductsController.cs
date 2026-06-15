@@ -1,6 +1,7 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
@@ -39,6 +40,7 @@ public class ProductsController : ControllerBase
             : Ok(ApiResponse<ProductDto>.Ok(product));
     }
 
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<ProductDto>>> Create([FromBody] CreateProductDto dto, CancellationToken ct)
     {
@@ -46,6 +48,7 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiResponse<ProductDto>.Ok(created));
     }
 
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<ProductDto>>> Update(Guid id, [FromBody] UpdateProductDto dto, CancellationToken ct)
     {
@@ -54,6 +57,7 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>Hides a product from the catalogue while preserving it on historical orders (US-S11).</summary>
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse<object>>> Hide(Guid id, CancellationToken ct)
     {

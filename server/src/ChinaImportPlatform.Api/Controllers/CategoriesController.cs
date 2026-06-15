@@ -1,6 +1,7 @@
 using ChinaImportPlatform.Api.Common;
 using ChinaImportPlatform.Api.Dtos;
 using ChinaImportPlatform.Api.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChinaImportPlatform.Api.Controllers;
@@ -37,6 +38,7 @@ public class CategoriesController : ControllerBase
             : Ok(ApiResponse<CategoryDto>.Ok(category));
     }
 
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<CategoryDto>>> Create([FromBody] CreateCategoryDto dto, CancellationToken ct)
     {
@@ -44,6 +46,7 @@ public class CategoriesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiResponse<CategoryDto>.Ok(created));
     }
 
+    [Authorize(Policy = Policies.SellerOnly)]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<CategoryDto>>> Update(Guid id, [FromBody] UpdateCategoryDto dto, CancellationToken ct)
     {
