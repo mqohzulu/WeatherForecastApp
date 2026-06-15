@@ -1,0 +1,42 @@
+[
+  {
+    "id": "10000000-0000-0000-0000-000000000001",
+    "name": "Machinery and Tools",
+    "sortOrder": 1,
+    "imageUrl": "https://cdn.example.co.za/categories/machinery.jpg",
+    "isActive": true,
+    "createdAt": "2026-01-10T08:00:00Z"
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000002",
+    "name": "Clothing and Apparel",
+    "sortOrder": 2,
+    "imageUrl": "https://cdn.example.co.za/categories/clothing.jpg",
+    "isActive": true,
+    "createdAt": "2026-01-10T08:00:00Z"
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000003",
+    "name": "Electronics",
+    "sortOrder": 3,
+    "imageUrl": "https://cdn.example.co.za/categories/electronics.jpg",
+    "isActive": true,
+    "createdAt": "2026-01-10T08:00:00Z"
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000004",
+    "name": "Household and General Goods",
+    "sortOrder": 4,
+    "imageUrl": "https://cdn.example.co.za/categories/household.jpg",
+    "isActive": true,
+    "createdAt": "2026-01-10T08:00:00Z"
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000005",
+    "name": "Custom / Special Orders",
+    "sortOrder": 5,
+    "imageUrl": "https://cdn.example.co.za/categories/custom.jpg",
+    "isActive": true,
+    "createdAt": "2026-01-10T08:00:00Z"
+  }
+]

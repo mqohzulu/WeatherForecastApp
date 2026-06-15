@@ -1,0 +1,54 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "fullName": "Seller Admin",
+    "phoneNumber": "+27820000001",
+    "email": "seller@example.co.za",
+    "role": "Seller",
+    "city": "Durban",
+    "suburb": "Kloof",
+    "preferredCollectionPoint": "Warehouse",
+    "phoneVerified": true,
+    "isDeleted": false,
+    "createdAt": "2026-01-10T08:00:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000002",
+    "fullName": "Thabo Mokoena",
+    "phoneNumber": "+27820000002",
+    "email": "thabo@example.co.za",
+    "role": "Customer",
+    "city": "Durban",
+    "suburb": "Pinetown",
+    "preferredCollectionPoint": "Pinetown pickup",
+    "phoneVerified": true,
+    "isDeleted": false,
+    "createdAt": "2026-02-01T09:30:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000003",
+    "fullName": "Nomsa Dlamini",
+    "phoneNumber": "+27820000003",
+    "email": "nomsa@example.co.za",
+    "role": "Customer",
+    "city": "Pietermaritzburg",
+    "suburb": "Scottsville",
+    "preferredCollectionPoint": "Courier",
+    "phoneVerified": true,
+    "isDeleted": false,
+    "createdAt": "2026-02-03T11:15:00Z"
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000004",
+    "fullName": "Sipho Nkosi",
+    "phoneNumber": "+27820000004",
+    "email": "sipho@example.co.za",
+    "role": "Customer",
+    "city": "Durban",
+    "suburb": "Umlazi",
+    "preferredCollectionPoint": "Warehouse",
+    "phoneVerified": true,
+    "isDeleted": false,
+    "createdAt": "2026-02-05T14:45:00Z"
+  }
+]

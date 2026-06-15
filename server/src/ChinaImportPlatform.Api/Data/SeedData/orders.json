@@ -1,0 +1,137 @@
+[
+  {
+    "id": "50000000-0000-0000-0000-000000000001",
+    "orderNumber": "ORD-2026-0001",
+    "userId": "00000000-0000-0000-0000-000000000002",
+    "tripId": "40000000-0000-0000-0000-000000000001",
+    "status": "Confirmed",
+    "paymentStatus": "Unpaid",
+    "totalIndicativeCents": 719300,
+    "totalFinalCents": 719300,
+    "createdAt": "2026-06-10T10:00:00Z",
+    "items": [
+      {
+        "id": "60000000-0000-0000-0000-000000000001",
+        "productId": "20000000-0000-0000-0000-000000000001",
+        "variantId": "30000000-0000-0000-0000-000000000001",
+        "productNameSnapshot": "Angle Grinder 230 mm",
+        "quantity": 5,
+        "note": "Standard model is fine.",
+        "unitPriceFinalCents": 129900,
+        "lineStatus": "Accepted"
+      },
+      {
+        "id": "60000000-0000-0000-0000-000000000002",
+        "productId": "20000000-0000-0000-0000-000000000003",
+        "variantId": "30000000-0000-0000-0000-00000000000b",
+        "productNameSnapshot": "Fleece Hoodie",
+        "quantity": 2,
+        "note": "Blue if available.",
+        "unitPriceFinalCents": 34900,
+        "lineStatus": "Accepted"
+      }
+    ],
+    "statusHistory": [
+      { "id": "61000000-0000-0000-0000-000000000001", "status": "Placed", "note": "Order submitted.", "createdBy": "00000000-0000-0000-0000-000000000002", "createdAt": "2026-06-10T10:00:00Z" },
+      { "id": "61000000-0000-0000-0000-000000000002", "status": "Confirmed", "note": "Prices confirmed.", "createdBy": "00000000-0000-0000-0000-000000000001", "createdAt": "2026-06-11T09:00:00Z" }
+    ]
+  },
+  {
+    "id": "50000000-0000-0000-0000-000000000002",
+    "orderNumber": "ORD-2026-0002",
+    "userId": "00000000-0000-0000-0000-000000000003",
+    "tripId": "40000000-0000-0000-0000-000000000001",
+    "status": "Confirmed",
+    "paymentStatus": "DepositPaid",
+    "totalIndicativeCents": 1318800,
+    "totalFinalCents": 1318800,
+    "createdAt": "2026-06-10T12:30:00Z",
+    "items": [
+      {
+        "id": "60000000-0000-0000-0000-000000000003",
+        "productId": "20000000-0000-0000-0000-000000000001",
+        "variantId": "30000000-0000-0000-0000-000000000001",
+        "productNameSnapshot": "Angle Grinder 230 mm",
+        "quantity": 9,
+        "note": "For resale.",
+        "unitPriceFinalCents": 129900,
+        "lineStatus": "Accepted"
+      },
+      {
+        "id": "60000000-0000-0000-0000-000000000004",
+        "productId": "20000000-0000-0000-0000-000000000004",
+        "variantId": "30000000-0000-0000-0000-00000000000d",
+        "productNameSnapshot": "Wireless Earbuds",
+        "quantity": 3,
+        "unitPriceFinalCents": 49900,
+        "lineStatus": "Accepted"
+      }
+    ],
+    "statusHistory": [
+      { "id": "61000000-0000-0000-0000-000000000003", "status": "Placed", "note": "Order submitted.", "createdBy": "00000000-0000-0000-0000-000000000003", "createdAt": "2026-06-10T12:30:00Z" },
+      { "id": "61000000-0000-0000-0000-000000000004", "status": "Confirmed", "note": "Confirmed, deposit received.", "createdBy": "00000000-0000-0000-0000-000000000001", "createdAt": "2026-06-11T09:05:00Z" }
+    ]
+  },
+  {
+    "id": "50000000-0000-0000-0000-000000000003",
+    "orderNumber": "ORD-2026-0003",
+    "userId": "00000000-0000-0000-0000-000000000004",
+    "tripId": "40000000-0000-0000-0000-000000000001",
+    "status": "BeingSourced",
+    "paymentStatus": "Unpaid",
+    "totalIndicativeCents": 167500,
+    "totalFinalCents": 167500,
+    "createdAt": "2026-06-10T15:45:00Z",
+    "items": [
+      {
+        "id": "60000000-0000-0000-0000-000000000005",
+        "productId": "20000000-0000-0000-0000-000000000003",
+        "variantId": "30000000-0000-0000-0000-00000000000b",
+        "productNameSnapshot": "Fleece Hoodie",
+        "quantity": 4,
+        "unitPriceFinalCents": 34900,
+        "lineStatus": "Sourced"
+      },
+      {
+        "id": "60000000-0000-0000-0000-000000000006",
+        "productId": "20000000-0000-0000-0000-000000000005",
+        "variantId": null,
+        "productNameSnapshot": "LED Desk Lamp",
+        "quantity": 1,
+        "unitPriceFinalCents": 27900,
+        "lineStatus": "Sourced"
+      }
+    ],
+    "statusHistory": [
+      { "id": "61000000-0000-0000-0000-000000000005", "status": "Placed", "note": "Order submitted.", "createdBy": "00000000-0000-0000-0000-000000000004", "createdAt": "2026-06-10T15:45:00Z" },
+      { "id": "61000000-0000-0000-0000-000000000006", "status": "Confirmed", "note": "Confirmed.", "createdBy": "00000000-0000-0000-0000-000000000001", "createdAt": "2026-06-11T09:10:00Z" },
+      { "id": "61000000-0000-0000-0000-000000000007", "status": "BeingSourced", "note": "Purchasing in Guangzhou this week.", "createdBy": "00000000-0000-0000-0000-000000000001", "createdAt": "2026-06-13T07:00:00Z" }
+    ]
+  },
+  {
+    "id": "50000000-0000-0000-0000-000000000004",
+    "orderNumber": "ORD-2026-0004",
+    "userId": "00000000-0000-0000-0000-000000000002",
+    "tripId": null,
+    "status": "AwaitingQuote",
+    "paymentStatus": "Unpaid",
+    "totalIndicativeCents": 0,
+    "totalFinalCents": null,
+    "createdAt": "2026-06-12T08:20:00Z",
+    "items": [
+      {
+        "id": "60000000-0000-0000-0000-000000000007",
+        "productId": null,
+        "variantId": null,
+        "customDescription": "Industrial sewing machine, single needle, with table and servo motor.",
+        "quantity": 1,
+        "note": "Brand open, budget around R8000.",
+        "unitPriceFinalCents": null,
+        "lineStatus": "Pending"
+      }
+    ],
+    "statusHistory": [
+      { "id": "61000000-0000-0000-0000-000000000008", "status": "AwaitingQuote", "note": "Custom request submitted.", "createdBy": "00000000-0000-0000-0000-000000000002", "createdAt": "2026-06-12T08:20:00Z" }
+    ]
+  }
+]

@@ -1,0 +1,144 @@
+@host = http://localhost:5000
+# After verify-otp, paste the accessToken here to call secured endpoints.
+@token = PASTE_ACCESS_TOKEN
+
+### Health check (public)
+GET {{host}}/health
+
+### Request an OTP (returns devOtp in Development)
+POST {{host}}/api/v1/auth/request-otp
+Content-Type: application/json
+
+{
+  "phoneNumber": "+27820000099",
+  "fullName": "New Tester"
+}
+
+### Verify OTP (use the devOtp from the previous response)
+POST {{host}}/api/v1/auth/verify-otp
+Content-Type: application/json
+
+{
+  "phoneNumber": "+27820000099",
+  "otp": "000000"
+}
+
+### Refresh the access token
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "PASTE_REFRESH_TOKEN"
+}
+
+### Register a push token
+POST {{host}}/api/v1/devices
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userId": "00000000-0000-0000-0000-000000000002",
+  "fcmToken": "example-fcm-token",
+  "platform": "android"
+}
+
+### List active categories (requires auth)
+GET {{host}}/api/v1/categories
+Authorization: Bearer {{token}}
+
+### List products in the Machinery category
+GET {{host}}/api/v1/products?categoryId=10000000-0000-0000-0000-000000000001
+
+### Search products
+GET {{host}}/api/v1/products?search=grinder
+
+### Place an order
+POST {{host}}/api/v1/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userId": "00000000-0000-0000-0000-000000000002",
+  "tripId": "40000000-0000-0000-0000-000000000001",
+  "items": [
+    { "productId": "20000000-0000-0000-0000-000000000001", "variantId": "30000000-0000-0000-0000-000000000001", "quantity": 3, "note": "Standard model" }
+  ]
+}
+
+### Seller order queue (Seller role required)
+GET {{host}}/api/v1/orders
+Authorization: Bearer {{token}}
+
+### Consolidated demand for the July trip (Seller role required)
+GET {{host}}/api/v1/consolidated-demand?tripId=40000000-0000-0000-0000-000000000001
+Authorization: Bearer {{token}}
+
+### Update an order status (Seller role required)
+PUT {{host}}/api/v1/orders/50000000-0000-0000-0000-000000000003/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "Shipped",
+  "note": "On the container, ETA Durban 20 July.",
+  "updatedBy": "00000000-0000-0000-0000-000000000001"
+}
+
+### Announcements feed
+GET {{host}}/api/v1/announcements
+Authorization: Bearer {{token}}
+
+### Search products with price range + sort (US-C07)
+GET {{host}}/api/v1/products?search=grinder&minPriceCents=100000&maxPriceCents=200000&sort=price_asc
+Authorization: Bearer {{token}}
+
+### New-order count for the queue badge (US-S01)
+GET {{host}}/api/v1/orders/new-count
+Authorization: Bearer {{token}}
+
+### Reject a line with a reason (US-S04)
+POST {{host}}/api/v1/orders/50000000-0000-0000-0000-000000000001/lines/reject
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "orderItemId": "60000000-0000-0000-0000-000000000002",
+  "reason": "Supplier discontinued this colour.",
+  "updatedBy": "00000000-0000-0000-0000-000000000001"
+}
+
+### Mark ready for collection (US-S07)
+POST {{host}}/api/v1/orders/50000000-0000-0000-0000-000000000003/ready-for-collection
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "collectionAddress": "Warehouse, 5 Bellevue Rd, Kloof",
+  "windowStart": "2026-07-20T09:00:00Z",
+  "windowEnd": "2026-07-20T17:00:00Z",
+  "note": "Bring your order number.",
+  "updatedBy": "00000000-0000-0000-0000-000000000001"
+}
+
+### Tick an item off the buying list -> Being Sourced (US-S02)
+POST {{host}}/api/v1/consolidated-demand/mark-sourced
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "productId": "20000000-0000-0000-0000-000000000001",
+  "variantId": "30000000-0000-0000-0000-000000000001",
+  "tripId": "40000000-0000-0000-0000-000000000001",
+  "updatedBy": "00000000-0000-0000-0000-000000000001"
+}
+
+### Update notification preferences (US-C15)
+PUT {{host}}/api/v1/auth/profile/00000000-0000-0000-0000-000000000002/notification-preferences
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "notifyStatusUpdates": true,
+  "notifyAnnouncements": false,
+  "notifyMessages": true
+}

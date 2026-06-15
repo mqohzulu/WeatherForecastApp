@@ -1,69 +1,57 @@
-# Weather Forecast API
+# China Import & Distribution Platform
 
-Weather Forecast API is an ASP.NET Core Web API that fetches weather data from OpenWeatherMap and stores forecast records in an in-memory SQLite database.
+A private, branded ordering and distribution application that replaces an informal
+WhatsApp-group ordering process with a secure mobile app for customers and a management
+dashboard for the seller. The seller imports goods from China, applies a markup, and
+distributes them to customers in South Africa.
 
-## Features
+This is a **monorepo** with two independently deployable halves:
 
-- Fetch real-time weather from OpenWeatherMap
-- Store weather data in an in-memory SQLite database
-- REST API with Swagger documentation
-- Uses `HttpClientFactory` for external API calls
-- Uses dependency injection throughout the application
+| Folder | What it is | Stack |
+|--------|------------|-------|
+| [`server/`](server/) | REST API | .NET 8 (C# 10), ASP.NET Core Web API, JSON-backed repositories (PostgreSQL-ready via EF Core) |
+| [`client/china_import_app/`](client/china_import_app/) | Mobile app (Android + iOS) | Flutter, feature-first clean architecture, Riverpod |
 
-## Tech Stack
+📋 The full engineering plan is in [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md).
 
-- ASP.NET Core
-- Entity Framework Core
-- SQLite (in-memory)
-- HttpClientFactory
-- Swagger (Swashbuckle)
+---
 
-## Installation and Setup
+## Quick start
 
-1. Clone the repository:
-
+### API (server)
 ```bash
-git clone https://github.com/your-username/weather-forecast-api.git
-cd weather-forecast-api
+cd server
+dotnet restore
+dotnet run --project src/ChinaImportPlatform.Api
+# Swagger UI: http://localhost:5000/swagger
+# Health:     http://localhost:5000/health
 ```
+The API boots against the JSON test data in
+`server/src/ChinaImportPlatform.Api/Data/SeedData/` — **no database is required to run it.**
+See [`server/README.md`](server/README.md) for how to connect your own PostgreSQL database.
 
-2. Configure API keys in `appsettings.json`:
-
-```json
-{
-  "WeatherApi": {
-    "ApiKey": "your_openweathermap_api_key",
-    "BaseUrl": "https://api.openweathermap.org/data/2.5/weather"
-  }
-}
-```
-
-3. Run the application:
-
+### App (client)
 ```bash
-dotnet run
+cd client/china_import_app
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter run --dart-define=ENV=dev
 ```
+See [`client/china_import_app/README.md`](client/china_import_app/README.md) for the
+architecture and tooling.
 
-## API Endpoints
+---
 
-- `GET /WeatherForecast?location={city}`: Fetch weather data for a location
-- `POST /WeatherForecast`: Save weather forecast to the database
-- `GET /swagger`: Open Swagger UI
+## API design at a glance
 
-## Environment Variables
+Layered exactly as **Controllers → Services / IServices → Repos / IRepos**, with
+DTOs, domain models, and enums in their own folders. The data layer is JSON-backed today
+and swaps to EF Core + PostgreSQL by changing only the dependency-injection registrations
+in `Program.cs` — controllers and business logic stay untouched.
 
-- `WeatherApi:ApiKey`: OpenWeatherMap API key
-- `WeatherApi:BaseUrl`: Base URL for the weather API
+Key REST groups (all under `/api/v1`): `auth`, `categories`, `products`, `trips`,
+`orders` (+ status / bulk-status / pricing), `consolidated-demand`, `announcements`,
+`payment-requests`, `conversations`.
 
-## Development and Contribution
-
-1. Fork the repository
-2. Create a new branch (`feature/my-feature`)
-3. Commit your changes
-4. Push to your branch
-5. Open a pull request
-
-## Contact
-
-- Email: mqohzulu@gmail.com
-- GitHub: https://github.com/mqohzulu/
+## License / ownership
+Compiled for Energy and Combustion Services Technology Solutions Development (Pty) Ltd.
